@@ -1,0 +1,922 @@
+/**
+ * Security Tools - Admin Styles
+ *
+ * Styles for the Security Tools settings page in WordPress admin.
+ *
+ * @package    Security_Tools
+ * @subpackage Assets/CSS
+ * @version    2.5
+ * @author     Carlos Rodríguez
+ */
+
+/* =============================================================================
+ * CSS CUSTOM PROPERTIES (Variables)
+ * =============================================================================
+ * Centralized color and style definitions for easy theming and maintenance.
+ */
+
+:root {
+    /* Background Colors */
+    --st-bg-page: #fff;
+    --st-bg-light: #f8f9fa;
+    --st-bg-lighter: #eef0f0;
+    --st-bg-warning: #fcf2cd;
+    --st-bg-active-badge: #d7e7f3;
+    --st-bg-inactive-badge: #ececec;
+    --st-bg-header-gradient-start: #f8f9fa;
+    --st-bg-header-gradient-end: #e9ecef;
+    --st-bg-section-header-line: #f0f0f1;
+    --st-bg-table-row-hover: #f8f9fa;
+    --st-bg-table-row-sorted: #e6ebf0;
+
+    /* Text Colors */
+    --st-text-primary: #1d2327;
+    --st-text-secondary: #23282d;
+    --st-text-muted: #646970;
+    --st-text-inactive: #959595;
+    --st-text-warning: #8a6914;
+
+    /* Border Colors */
+    --st-border-default: #ccd0d4;
+    --st-border-lighter: #c3c4c7;
+    --st-border-lightest: #e1e5e9;
+    --st-border-input: #8c8f94;
+    --st-border-warning: #dba617;
+    --st-border-active-badge: #b8d3e7;
+    --st-border-inactive-badge: #c9c9c9;
+    --st-border-table-row: #f0f0f1;
+
+    /* Primary Theme Colors */
+    --st-primary: #2271b1;
+    --st-primary-dark: #1d5f96;
+    --st-primary-darker: #1a5280;
+
+    /* Reset Button Colors */
+    --st-reset-start: #858f98;
+    --st-reset-end: #79848d;
+    --st-reset-hover-start: #687076;
+    --st-reset-hover-end: #616a71;
+
+    /* Shadows */
+    --st-shadow-light: 0 2px 4px rgba(0,0,0,0.04);
+    --st-shadow-mid: 0 1px 3px rgba(0,0,0,0.05);
+    --st-shadow-card: 0 1px 3px rgba(0,0,0,0.1);
+    --st-shadow-card-hover: 0 2px 6px rgba(0,0,0,0.15);
+    --st-shadow-switch: 0 2px 4px rgba(0,0,0,0.2);
+    --st-shadow-btn-primary: 0 2px 4px rgba(34, 113, 177, 0.3);
+    --st-shadow-btn-primary-hover: 0 3px 8px rgba(34, 113, 177, 0.4);
+    --st-shadow-btn-reset: 0 2px 4px rgba(108, 117, 125, 0.3);
+    --st-shadow-btn-reset-hover: 0 3px 8px rgba(108, 117, 125, 0.4);
+
+    /* Font Sizes */
+    --st-font-large: 28px;
+    --st-font-medium: 20px;
+    --st-font-normal: 14px;
+    --st-font-small: 13px;
+    --st-font-xs: 12px;
+    --st-font-xxs: 11px;
+}
+
+/* =============================================================================
+ * PAGE CONTAINER
+ * =============================================================================
+ */
+
+.security-tools-page {
+    max-width: 1200px;
+}
+
+/* =============================================================================
+ * HEADER SECTION
+ * =============================================================================
+ */
+
+.security-tools-header {
+    background: linear-gradient(135deg, var(--st-bg-header-gradient-start) 0%, var(--st-bg-header-gradient-end) 100%);
+    border: 1px solid var(--st-border-default);
+    border-radius: 8px;
+    padding: 20px 25px;
+    margin-bottom: 25px;
+    box-shadow: var(--st-shadow-light);
+}
+
+.security-tools-header h1 {
+    margin: 0;
+    font-size: var(--st-font-large);
+    font-weight: 600;
+    color: var(--st-text-primary);
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+}
+
+.security-tools-version {
+    font-size: var(--st-font-normal);
+    color: var(--st-text-muted);
+    font-weight: 400;
+    padding: 3px 0px;
+}
+
+p.security-tools-author {
+    margin-top: 0;
+}
+
+/* =============================================================================
+ * TAB NAVIGATION
+ * =============================================================================
+ * Internal navigation bar for moving between plugin subpages.
+ * Especially useful when Autohide Menu feature is enabled.
+ * @since 2.1
+ */
+
+.security-tools-tab-nav {
+    background: var(--st-bg-page);
+    border: 1px solid var(--st-border-default);
+    border-radius: 6px;
+    margin-bottom: 25px;
+    box-shadow: var(--st-shadow-light);
+    overflow: hidden;
+}
+
+.security-tools-tab-list {
+    display: flex;
+    flex-wrap: wrap;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    background: var(--st-bg-lighter);
+    border-bottom: 1px solid var(--st-border-lighter);
+}
+
+.security-tools-tab-item {
+    margin: 0;
+    padding: 0;
+}
+
+.security-tools-tab-link {
+    display: block;
+    padding: 12px 18px;
+    text-decoration: none;
+    color: var(--st-text-muted);
+    font-size: var(--st-font-small);
+    font-weight: 500;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.security-tools-tab-link:hover {
+    color: var(--st-primary);
+    background: var(--st-bg-page);
+}
+
+.security-tools-tab-link.active {
+    color: var(--st-primary);
+    background: var(--st-bg-page);
+    border-bottom-color: var(--st-primary);
+    font-weight: 600;
+}
+
+/* Responsive adjustments for tab navigation */
+@media screen and (max-width: 782px) {
+    .security-tools-tab-list {
+        flex-direction: column;
+    }
+
+    .security-tools-tab-link {
+        padding: 10px 15px;
+        border-bottom: none;
+        border-left: 3px solid transparent;
+    }
+
+    .security-tools-tab-link.active {
+        border-bottom: none;
+        border-left-color: var(--st-primary);
+    }
+}
+
+/* =============================================================================
+ * CUSTOM LEGEND SECTION
+ * =============================================================================
+ */
+
+.security-tools-legend-section {
+    background: var(--st-bg-page);
+    border: 1px solid var(--st-border-lighter);
+    border-radius: 6px;
+    margin-bottom: 25px;
+    box-shadow: var(--st-shadow-mid);
+    overflow: hidden;
+}
+
+.security-tools-legend-header {
+    background: var(--st-bg-lighter);
+    border-bottom: 1px solid var(--st-border-lighter);
+    padding: 15px 20px;
+}
+
+.security-tools-legend-header h2 {
+    margin: 0;
+    font-size: 18px;
+    color: var(--st-text-primary);
+    font-weight: 600;
+}
+
+.security-tools-legend-content {
+    padding: 20px;
+}
+
+.security-tools-legend-content .form-table {
+    margin: 0;
+}
+
+.security-tools-legend-content .form-table th {
+    font-weight: 600;
+    color: var(--st-text-primary);
+    padding-left: 0;
+}
+
+.security-tools-legend-content input[type="text"] {
+    border: 2px solid var(--st-border-input);
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-size: var(--st-font-normal);
+    transition: border-color 0.2s ease;
+}
+
+.security-tools-legend-content input[type="text"]:focus {
+    border-color: var(--st-primary);
+    box-shadow: 0 0 0 1px var(--st-primary);
+    outline: none;
+}
+
+/* =============================================================================
+ * SYSTEM CONTROLS GRID
+ * =============================================================================
+ */
+
+.security-tools-controls-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin: 25px 0;
+}
+
+.security-tools-control-card {
+    background: var(--st-bg-page);
+    border: 1px solid var(--st-border-default);
+    border-radius: 6px;
+    box-shadow: var(--st-shadow-card);
+    overflow: hidden;
+    transition: box-shadow 0.2s ease;
+}
+
+.security-tools-control-card:hover {
+    box-shadow: var(--st-shadow-card-hover);
+}
+
+.control-card-header {
+    background: var(--st-bg-lighter);
+    border-bottom: 1px solid var(--st-border-lightest);
+    padding: 15px 20px 10px;
+}
+
+.control-card-header h3 {
+    margin: 0 0 5px 0;
+    font-size: 16px;
+    color: var(--st-text-secondary);
+    font-weight: 600;
+}
+
+.control-description {
+    margin: 0;
+    font-size: var(--st-font-small);
+    color: var(--st-text-muted);
+    line-height: 1.4;
+}
+
+.control-card-content {
+    padding: 20px;
+}
+
+/* =============================================================================
+ * TOGGLE SWITCH
+ * =============================================================================
+ */
+
+.control-switch {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    margin-bottom: 10px;
+}
+
+.control-switch input[type="checkbox"] {
+    display: none;
+}
+
+.control-slider {
+    position: relative;
+    width: 50px;
+    height: 24px;
+    background: var(--st-border-default);
+    border-radius: 24px;
+    transition: background 0.3s ease;
+    flex-shrink: 0;
+}
+
+.control-slider:before {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--st-bg-page);
+    top: 2px;
+    left: 2px;
+    transition: transform 0.3s ease;
+    box-shadow: var(--st-shadow-switch);
+}
+
+.control-switch input:checked + .control-slider {
+    background: var(--st-primary);
+}
+
+.control-switch input:checked + .control-slider:before {
+    transform: translateX(26px);
+}
+
+.control-label {
+    font-size: var(--st-font-normal);
+    color: var(--st-text-secondary);
+    font-weight: 500;
+}
+
+/* =============================================================================
+ * CONTROL MESSAGES
+ * =============================================================================
+ */
+
+.control-warning {
+    margin: 10px 0 0 0;
+    padding: 8px 12px;
+    background: var(--st-bg-warning);
+    border: 1px solid var(--st-border-warning);
+    border-radius: 4px;
+    font-size: var(--st-font-xs);
+    color: var(--st-text-warning);
+    line-height: 1.4;
+}
+
+.control-info {
+    margin: 12px 0 0 0 !important;
+    font-size: var(--st-font-xs);
+    color: var(--st-text-muted);
+    line-height: 1.4;
+}
+
+/* =============================================================================
+ * SECTION HEADERS
+ * =============================================================================
+ */
+
+.security-tools-section-header {
+    margin: 35px 0 15px 0;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--st-bg-section-header-line);
+    position: relative;
+}
+
+.security-tools-section-header h2 {
+    margin: 0;
+    font-size: var(--st-font-medium);
+    color: var(--st-text-primary);
+    font-weight: 600;
+}
+
+.security-tools-section-header:before {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 60px;
+    height: 2px;
+    background: var(--st-primary);
+}
+
+.security-tools-table-description {
+    margin-bottom: 20px;
+}
+
+.security-tools-table-description .control-info {
+    font-size: var(--st-font-normal);
+}
+
+/* =============================================================================
+ * ENHANCED TABLES
+ * =============================================================================
+ */
+
+.security-tools-enhanced-table {
+    background: var(--st-bg-page);
+    border: 1px solid var(--st-border-lighter);
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: var(--st-shadow-light);
+    margin-bottom: 25px;
+}
+
+.security-tools-enhanced-table .wp-list-table {
+    border: none;
+    box-shadow: none;
+}
+
+.security-tools-enhanced-table thead th {
+    background: var(--st-bg-lighter);
+    border-bottom: 2px solid var(--st-border-lighter);
+    padding: 15px 12px !important;
+    font-weight: 600;
+    color: var(--st-text-primary);
+    text-transform: uppercase;
+    font-size: var(--st-font-xxs);
+    letter-spacing: 0.5px;
+}
+
+.widefat th.sortable,
+.widefat th.sorted {
+    background: var(--st-bg-table-row-sorted);
+}
+
+.security-tools-enhanced-table tbody tr {
+    transition: background-color 0.15s ease;
+}
+
+.security-tools-enhanced-table tbody tr:hover {
+    background-color: var(--st-bg-table-row-hover);
+}
+
+.security-tools-enhanced-table tbody td {
+    padding: 12px;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--st-border-table-row);
+}
+
+.security-tools-enhanced-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* =============================================================================
+ * SORTABLE TABLE HEADERS
+ * =============================================================================
+ */
+
+.sortable-header {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    transition: background-color 0.2s ease;
+}
+
+.sortable-header:hover {
+    background-color: var(--st-bg-table-row-hover);
+}
+
+.sort-indicator {
+    margin-left: 5px;
+    opacity: 0.5;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    font-weight: normal;
+}
+
+.sortable-header:hover .sort-indicator {
+    opacity: 0.8;
+}
+
+.sortable-header.sorted .sort-indicator {
+    opacity: 1;
+}
+
+/* =============================================================================
+ * CUSTOM CHECKBOXES
+ * =============================================================================
+ */
+
+.security-tools-checkbox {
+    position: relative;
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+}
+
+.security-tools-checkbox input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
+    margin: 0;
+}
+
+.security-tools-checkbox-custom {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 18px;
+    width: 18px;
+    background-color: var(--st-bg-page);
+    border: 2px solid var(--st-border-input);
+    border-radius: 3px;
+    transition: all 0.2s ease;
+}
+
+.security-tools-checkbox input[type="checkbox"]:checked ~ .security-tools-checkbox-custom {
+    background-color: var(--st-primary);
+    border-color: var(--st-primary);
+}
+
+.security-tools-checkbox-custom:after {
+    content: "";
+    position: absolute;
+    display: none;
+    left: 4px;
+    top: 1px;
+    width: 6px;
+    height: 10px;
+    border: solid var(--st-bg-page);
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.security-tools-checkbox input[type="checkbox"]:checked ~ .security-tools-checkbox-custom:after {
+    display: block;
+}
+
+.security-tools-checkbox:hover .security-tools-checkbox-custom {
+    border-color: var(--st-primary);
+}
+
+/* =============================================================================
+ * STATUS BADGES
+ * =============================================================================
+ */
+
+.status-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: var(--st-font-xxs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-active {
+    background: var(--st-bg-active-badge);
+    color: var(--st-primary);
+    border: 1px solid var(--st-border-active-badge);
+}
+
+.status-inactive {
+    background: var(--st-bg-inactive-badge);
+    color: var(--st-text-inactive);
+    border: 1px solid var(--st-border-inactive-badge);
+}
+
+/* =============================================================================
+ * BUTTONS
+ * =============================================================================
+ */
+
+.security-tools-buttons {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-top: 20px;
+    margin-bottom: 40px;
+}
+
+.security-tools-submit {
+    background: linear-gradient(135deg, var(--st-primary) 0%, var(--st-primary-dark) 100%);
+    border: none;
+    border-radius: 4px;
+    color: var(--st-bg-page);
+    padding: 10px 24px;
+    font-size: var(--st-font-normal);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: var(--st-shadow-btn-primary);
+    margin-top: 20px;
+}
+
+.security-tools-submit:hover {
+    background: linear-gradient(135deg, var(--st-primary-dark) 0%, var(--st-primary-darker) 100%);
+    box-shadow: var(--st-shadow-btn-primary-hover);
+}
+
+.security-tools-submit:active {
+    transform: translateY(0);
+}
+
+.security-tools-reset {
+    background: linear-gradient(135deg, var(--st-reset-start) 0%, var(--st-reset-end) 100%);
+    border: none;
+    border-radius: 4px;
+    color: var(--st-bg-page);
+    padding: 10px 24px;
+    font-size: var(--st-font-normal);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: var(--st-shadow-btn-reset);
+    margin-top: 20px;
+    margin-left: 12px;
+}
+
+.security-tools-reset:hover {
+    background: linear-gradient(135deg, var(--st-reset-hover-start) 0%, var(--st-reset-hover-end) 100%);
+    box-shadow: var(--st-shadow-btn-reset-hover);
+}
+
+.security-tools-reset:active {
+    transform: translateY(0);
+}
+
+/* =============================================================================
+ * MEDIA UPLOADER (Login Logo)
+ * =============================================================================
+ * Styles for the custom login logo media uploader on the Branding page.
+ * @since 2.3
+ */
+
+.security-tools-media-upload {
+    margin-bottom: 10px;
+}
+
+.security-tools-logo-preview {
+    margin-bottom: 15px;
+    padding: 15px;
+    background: var(--st-bg-light);
+    border: 1px dashed var(--st-border-default);
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.security-tools-logo-preview img {
+    display: block;
+    width: 300px;
+    max-width: 100%;
+    height: auto;
+}
+
+.security-tools-media-buttons {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.security-tools-media-buttons .button {
+    margin: 0;
+}
+
+.security-tools-media-buttons .button-link-delete {
+    color: #b32d2e;
+    text-decoration: none;
+    padding: 0 10px;
+}
+
+.security-tools-media-buttons .button-link-delete:hover {
+    color: #a00;
+    background: none;
+}
+
+/* =============================================================================
+ * TOKENFIELD / CHIP INPUT
+ * =============================================================================
+ * Material Design-inspired token/chip input for CSS ID entry.
+ * Used in the Admin Bar CSS hiding feature.
+ * @since 2.4
+ */
+
+.security-tools-tokenfield {
+    margin-top: 15px;
+}
+
+.security-tools-token-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-height: 36px;
+    padding: 10px;
+    background: var(--st-bg-light);
+    border: 1px solid var(--st-border-default);
+    border-radius: 4px;
+    margin-bottom: 12px;
+}
+
+.security-tools-token-container:empty {
+    min-height: 36px;
+}
+
+.security-tools-token-container:empty::before {
+    content: attr(data-empty-message);
+    color: var(--st-text-muted);
+    font-style: italic;
+    font-size: var(--st-font-small);
+}
+
+/* Individual Token/Chip */
+.security-tools-token {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 8px 6px 12px;
+    background: var(--st-bg-page);
+    border: 1px solid var(--st-border-lighter);
+    border-radius: 16px;
+    font-size: var(--st-font-small);
+    color: var(--st-text-primary);
+    line-height: 1;
+    transition: all 0.2s ease;
+    box-shadow: var(--st-shadow-light);
+}
+
+.security-tools-token:hover {
+    border-color: var(--st-primary);
+    box-shadow: var(--st-shadow-card);
+}
+
+.security-tools-token .token-text {
+    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    font-size: var(--st-font-xs);
+    color: var(--st-text-secondary);
+}
+
+/* Token Remove Button */
+.security-tools-token .token-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    margin: 0;
+    background: var(--st-bg-lighter);
+    border: none;
+    border-radius: 50%;
+    color: var(--st-text-muted);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.security-tools-token .token-remove:hover {
+    background: #dc3232;
+    color: var(--st-bg-page);
+}
+
+.security-tools-token .token-remove:focus {
+    outline: 2px solid var(--st-primary);
+    outline-offset: 1px;
+}
+
+/* Tokenfield Input Row */
+.security-tools-tokenfield-input-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.security-tools-tokenfield-input-row input[type="text"] {
+    flex: 1;
+    min-width: 200px;
+    max-width: 350px;
+    border: 2px solid var(--st-border-input);
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-size: var(--st-font-normal);
+    transition: border-color 0.2s ease;
+}
+
+.security-tools-tokenfield-input-row input[type="text"]:focus {
+    border-color: var(--st-primary);
+    box-shadow: 0 0 0 1px var(--st-primary);
+    outline: none;
+}
+
+.security-tools-tokenfield-input-row .button {
+    height: auto;
+    padding: 8px 16px;
+}
+
+/* Hidden inputs container (not visible) */
+#admin-bar-css-hidden-inputs {
+    display: none;
+}
+
+/* ==========================================================================
+   METABOX SCANNER STYLES
+   ========================================================================== */
+
+/* Scan Controls Container */
+.security-tools-scan-controls {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-top: 15px;
+    flex-wrap: wrap;
+}
+
+.security-tools-scan-controls .button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    height: auto;
+}
+
+.security-tools-scan-controls .button .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+}
+
+/* Scan Status Text */
+.security-tools-scan-status {
+    font-size: var(--st-font-small);
+    color: var(--st-text-secondary);
+    font-style: italic;
+}
+
+/* Progress Container */
+.security-tools-scan-progress {
+    margin-top: 20px;
+    padding: 15px;
+    background: var(--st-bg-lighter);
+    border-radius: var(--st-border-radius);
+    border: 1px solid var(--st-border-lighter);
+}
+
+/* Progress Bar Track */
+.security-tools-progress-bar {
+    width: 100%;
+    height: 20px;
+    background: var(--st-bg-page);
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--st-border-input);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Progress Bar Fill */
+.security-tools-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--st-primary), #1e8cbe);
+    border-radius: 10px;
+    transition: width 0.3s ease;
+    position: relative;
+}
+
+/* Animated stripe effect on progress bar */
+.security-tools-progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        -45deg,
+        rgba(255, 255, 255, 0.15) 25%,
+        transparent 25%,
+        transparent 50%,
+        rgba(255, 255, 255, 0.15) 50%,
+        rgba(255, 255, 255, 0.15) 75%,
+        transparent 75%,
+        transparent
+    );
+    background-size: 30px 30px;
+    animation: progress-stripe 1s linear infinite;
+}
+
+@keyframes progress-stripe {
+    0% {
+        background-position: 0 0;
+    }
+    100% {
+        background-position: 30px 0;
+    }
+}
+
+/* Progress Text */
+.security-tools-progress-text {
+    margin: 10px 0 0 0;
+    font-size: var(--st-font-small);
+    color: var(--st-text-secondary);
+    text-align: center;
+}
