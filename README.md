@@ -6,7 +6,7 @@
 
 ---
 
-## Why Security Tools?
+## ✨ Why Security Tools?
 
 - **Reduce risk:** Disable sensitive actions like updates, plugin installs, or theme editing when you don’t want them available.
 - **Keep the dashboard clean:** Hide admin notices, widgets, admin bar items, and more.
@@ -15,7 +15,7 @@
 
 ---
 
-## Who It’s For
+## 🎯 Who It’s For
 
 - Agencies managing client sites who want to lock down risky admin actions.
 - Site owners who need a clean, focused admin experience.
@@ -23,7 +23,7 @@
 
 ---
 
-## Quick Start (MU Plugin)
+## 🚀 Quick Start (MU Plugin)
 
 1. Copy the `security-tools` folder to `wp-content/mu-plugins/`.
 2. Create `wp-content/mu-plugins/security-tools-loader.php` with:
@@ -44,7 +44,7 @@ if ( file_exists( __DIR__ . '/security-tools/security-tools.php' ) ) {
 
 ---
 
-## Feature Highlights
+## 🧰 Feature Highlights
 
 ### System Controls
 - **Disable Updates** (core, plugins, themes)
@@ -72,7 +72,7 @@ if ( file_exists( __DIR__ . '/security-tools/security-tools.php' ) ) {
 
 ---
 
-## What Makes It Different
+## 🧠 What Makes It Different
 
 - **MU Plugin:** auto‑loaded and always on, no activation required.
 - **Self‑hiding:** removes itself from the plugins list and MU tab.
@@ -81,20 +81,40 @@ if ( file_exists( __DIR__ . '/security-tools/security-tools.php' ) ) {
 
 ---
 
-## Important Safety Notes
+## ⚠️ Important Safety Notes
 
 - **Lockout risk:** If you enable **Hide Login Page** and **Disable Emails**, you can lock yourself out. Always bookmark your custom login URL.
 - **Security risk:** Disabling updates prevents security patches. Only do this if you manage updates another way.
 
 ---
 
-## Documentation
+## 📚 Documentation
 
 - Full user guide: `user-guide.html`
 - Changelog: `changelog.md`
 
 ---
 
-## License
+## ⚖️ License
 
 GPLv3
+
+---
+
+## 📜 Legal Notice
+
+### Disclaimer of Warranty
+
+This software is provided \"as is\" without warranty of any kind, either express or implied, including, but not limited
+to, the implied warranties of merchantability and fitness for a particular purpose. The entire risk as to the quality
+and performance of the program is with you. Should the program prove defective, you assume the cost of all necessary
+servicing, repair or correction.
+
+### Limitation of Liability
+
+In no event unless required by applicable law or agreed to in writing will any copyright holder, or any other party who
+may modify and/or redistribute the program as permitted above, be liable to you for damages, including any general,
+special, incidental or consequential damages arising out of the use or inability to use the program (including but not
+limited to loss of data or data being rendered inaccurate or losses sustained by you or third parties or a failure of
+the program to operate with any other programs), even if such holder or other party has been advised of the possibility
+of such damages.
