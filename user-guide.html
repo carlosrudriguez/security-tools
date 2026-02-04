@@ -315,12 +315,18 @@
             <div id="toc">
                 <a href="#overview" class="nav-link">Overview</a>
                 <a href="#installation" class="nav-link">Installation</a>
+                <a href="#quick-start" class="nav-link">Quick Start</a>
+                <a href="#using-plugin" class="nav-link">Using the Plugin</a>
                 <a href="#features" class="nav-link">Features Overview</a>
+                <a href="#feature-guides" class="nav-link">Feature Guides</a>
                 <a href="#menu-structure" class="nav-link">Menu Structure</a>
                 <a href="#technical" class="nav-link">Technical Architecture</a>
                 <a href="#files" class="nav-link">File Descriptions</a>
                 <a href="#database" class="nav-link">Database Options</a>
                 <a href="#history" class="nav-link">Version History</a>
+                <a href="#faq" class="nav-link">FAQ</a>
+                <a href="#troubleshooting" class="nav-link">Troubleshooting</a>
+                <a href="#glossary" class="nav-link">Glossary</a>
                 <a href="#risks" class="nav-link" style="color:#d63638;">Operational Risks</a>
                 <a href="#legal" class="nav-link">Legal Notice</a>
             </div>
@@ -343,6 +349,8 @@
                         provide advanced security management, administrative control, and interface customization
                         capabilities. The plugin operates invisibly, hidden from other administrators while maintaining
                         full functionality.</p>
+                    <p>This guide is written for WordPress administrators. You do not need to be a developer to use
+                        this plugin. Each feature is optional and can be enabled or disabled at any time.</p>
 
                     <div class="card">
                         <h3 style="margin-top:0">Key Characteristics</h3>
@@ -354,6 +362,13 @@
                             <li><strong>Non-Destructive:</strong> All features are toggleable; nothing is permanently
                                 changed.</li>
                         </ul>
+                    </div>
+
+                    <div class="card">
+                        <h3 style="margin-top:0">Who This Is For</h3>
+                        <p>This plugin is designed for site owners, agencies, and administrators who need extra control
+                            over WordPress behavior and the admin interface. It is especially useful for managing
+                            client sites or production environments where stability and security are critical.</p>
                     </div>
                 </section>
 
@@ -391,6 +406,42 @@ if ( file_exists( __DIR__ . '/security-tools/security-tools.php' ) ) {
         ├── features/
         ├── admin/
         └── assets/</pre>
+                </section>
+
+                <section id="quick-start">
+                    <h2>Quick Start</h2>
+                    <div class="card">
+                        <h3 style="margin-top:0">Get Up and Running in 5 Minutes</h3>
+                        <ol style="margin-bottom:0">
+                            <li>Open <strong>Security Tools</strong> in the WordPress admin menu.</li>
+                            <li>Review <strong>General</strong> and decide whether to enable <strong>Autohide Menu</strong>.</li>
+                            <li>Visit <strong>System Controls</strong> and enable only the options you need.</li>
+                            <li>Use the <strong>Branding</strong> page if you want a custom login logo or message.</li>
+                            <li>Save settings on each page. Changes take effect immediately.</li>
+                        </ol>
+                    </div>
+                </section>
+
+                <section id="using-plugin">
+                    <h2>Using the Plugin</h2>
+                    <div class="card">
+                        <h3 style="margin-top:0">Navigation</h3>
+                        <p>The plugin appears as a top-level menu called <strong>Security Tools</strong>. Each feature is
+                            organized into its own tab. If <strong>Autohide Menu</strong> is enabled, you can still
+                            access all pages using the tab navigation at the top of the settings screen or by visiting
+                            this URL directly:</p>
+                        <p><code>wp-admin/admin.php?page=security-tools</code></p>
+                    </div>
+                    <div class="card">
+                        <h3 style="margin-top:0">Saving Changes</h3>
+                        <p>Each settings page has its own <strong>Save Settings</strong> button. Changes on one page do
+                            not affect other pages. If you leave a page without saving, changes on that page are lost.</p>
+                    </div>
+                    <div class="card">
+                        <h3 style="margin-top:0">Tables and Checkboxes</h3>
+                        <p>Pages like Admins, Plugins, Themes, Widgets, Admin Bar, and Metaboxes use tables with
+                            checkboxes. Use the checkbox in the header to select or clear all items.</p>
+                    </div>
                 </section>
 
                 <section id="features">
@@ -520,6 +571,69 @@ if ( file_exists( __DIR__ . '/security-tools/security-tools.php' ) ) {
 
                 </section>
 
+                <section id="feature-guides">
+                    <h2>Feature Guides</h2>
+
+                    <h3>General</h3>
+                    <p><strong>Autohide Menu</strong> hides the Security Tools menu from the sidebar. The plugin stays
+                        accessible via the tab navigation and by URL. This is useful if you want fewer visible admin
+                        links for other users.</p>
+                    <p><strong>Reset All Settings</strong> clears every setting and returns the plugin to defaults. It
+                        does not uninstall the plugin or delete files.</p>
+
+                    <h3>Branding</h3>
+                    <p><strong>Custom Legend</strong> displays a short message on the login screen and the admin footer.
+                        Leave it blank to disable.</p>
+                    <p><strong>Custom Login Logo</strong> replaces the WordPress logo on the login page. You can use JPG,
+                        PNG, GIF, WebP, or SVG.</p>
+                    <p><strong>Logo Link URL</strong> changes where the login logo links to. Leave it blank to link to
+                        your site homepage.</p>
+
+                    <h3>System Controls</h3>
+                    <p>These toggles change core WordPress behavior. Use them carefully:</p>
+                    <ul>
+                        <li><strong>Disable Updates:</strong> stops all update checks (core, plugins, themes).</li>
+                        <li><strong>Hide Admin Notices:</strong> removes dashboard alerts and update prompts.</li>
+                        <li><strong>Disable Emails:</strong> blocks all outgoing emails, including password resets.</li>
+                        <li><strong>Disable Email Verification:</strong> removes the email verification prompt.</li>
+                        <li><strong>Disable Plugin/Theme Controls:</strong> prevents installing, editing, or changing plugins/themes.</li>
+                        <li><strong>Disable Comments:</strong> removes comment functionality across the site.</li>
+                        <li><strong>Disable Frontend Admin Bar:</strong> hides the admin bar on the front-end.</li>
+                    </ul>
+
+                    <p><strong>Hide Login Page</strong> lets you set a custom login URL. If enabled, visiting
+                        <code>wp-login.php</code> returns a 404 for non-logged-in users. Always test the new URL in an
+                        incognito window and bookmark it.</p>
+
+                    <h3>Admins</h3>
+                    <p>Hides selected administrator accounts from the Users list. Hidden admins still have full access
+                        and can log in.</p>
+
+                    <h3>Plugins</h3>
+                    <p>Hides selected plugins from the Plugins list. This does not deactivate them.</p>
+
+                    <h3>Themes</h3>
+                    <p>Hides selected themes from the Themes list. The active theme remains active even if hidden.</p>
+
+                    <h3>Widgets</h3>
+                    <p>Hides dashboard widgets. Some plugins register widgets late; this tool preserves those hidden
+                        widgets even if they do not appear in the list.</p>
+
+                    <h3>Admin Bar</h3>
+                    <p>Hide admin bar items by selecting them from the list. Some items cannot be removed via WordPress
+                        APIs; for those, use <strong>Hide by CSS ID</strong>. Enter the element ID without a leading
+                        <code>#</code> (e.g., <code>wp-admin-bar-example</code>).</p>
+
+                    <h3>Metaboxes</h3>
+                    <p>Hides meta boxes on post/page editors. The plugin discovers metaboxes automatically when you edit
+                        content. If some metaboxes are missing, use the <strong>Scan for Metaboxes</strong> button to
+                        load all post types and build a complete list.</p>
+
+                    <h3>Wordfence Integration</h3>
+                    <p>If Wordfence Login Security is active, Security Tools hides the 2FA filter links on the Users
+                        page. This does not change Wordfence functionality.</p>
+                </section>
+
                 <section id="menu-structure">
                     <h2>Menu Structure</h2>
                     <pre>Security Tools (top-level, dashicons-shield)
@@ -537,6 +651,7 @@ if ( file_exists( __DIR__ . '/security-tools/security-tools.php' ) ) {
                 <section id="technical">
                     <h2>Technical Architecture</h2>
                     <p>All classes use the prefix <code>Security_Tools_</code> to avoid conflicts.</p>
+                    <p>This section is mainly for developers and advanced users. Most administrators can skip it.</p>
 
                     <h3>Settings Groups</h3>
                     <table>
@@ -649,6 +764,106 @@ get_option( Security_Tools_Utils::OPTION_DISCOVERED_METABOXES ); <span style="co
                     <h2>Version History</h2>
                     <p>Please refer to <code>changelog.md</code> included in the plugin package for a detailed history
                         of changes.</p>
+                </section>
+
+                <section id="faq">
+                    <h2>FAQ</h2>
+                    <div class="card">
+                        <h3 style="margin-top:0">Does this plugin change my files?</h3>
+                        <p>No. It works by using WordPress hooks and settings. All changes are reversible.</p>
+                    </div>
+                    <div class="card">
+                        <h3 style="margin-top:0">If I hide a plugin or theme, is it disabled?</h3>
+                        <p>No. Hiding only removes it from the admin UI; it still runs as normal.</p>
+                    </div>
+                    <div class="card">
+                        <h3 style="margin-top:0">Can I recover if I lock myself out?</h3>
+                        <p>Yes. Rename or remove the <code>security-tools</code> folder in <code>mu-plugins</code> or
+                            disable the relevant option in the database.</p>
+                    </div>
+                </section>
+
+                <section id="troubleshooting">
+                    <h2>Troubleshooting</h2>
+                    <div class="card">
+                        <h3 style="margin-top:0">I can't see the Security Tools menu</h3>
+                        <p>If Autohide Menu is enabled, access the settings directly:</p>
+                        <p><code>wp-admin/admin.php?page=security-tools</code></p>
+                    </div>
+                    <div class="card">
+                        <h3 style="margin-top:0">I forgot my custom login URL</h3>
+                        <p>Disable the feature by renaming the plugin folder:</p>
+                        <p><code>wp-content/mu-plugins/security-tools</code></p>
+                        <p>Then log in at <code>wp-login.php</code>, restore the folder, and update the setting.</p>
+                    </div>
+                    <div class="card">
+                        <h3 style="margin-top:0">Metaboxes are missing from the list</h3>
+                        <p>Edit a post to trigger automatic discovery, or use the <strong>Scan for Metaboxes</strong>
+                            button on the Metaboxes page.</p>
+                    </div>
+                </section>
+
+                <section id="glossary">
+                    <h2>Glossary</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Term</th>
+                                <th>Meaning</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>MU Plugin</td>
+                                <td>A Must-Use plugin loaded automatically by WordPress from <code>mu-plugins</code>.
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Slug</td>
+                                <td>The URL-friendly text used in links (e.g., the custom login path).</td>
+                            </tr>
+                            <tr>
+                                <td>CSS ID</td>
+                                <td>A unique HTML identifier used to target elements (used in Admin Bar hiding).</td>
+                            </tr>
+                            <tr>
+                                <td>Admin Bar</td>
+                                <td>The toolbar shown at the top of the screen when logged in.</td>
+                            </tr>
+                            <tr>
+                                <td>Admin Notice</td>
+                                <td>Alert messages shown in the WordPress admin dashboard.</td>
+                            </tr>
+                            <tr>
+                                <td>Gutenberg</td>
+                                <td>The modern WordPress block editor.</td>
+                            </tr>
+                            <tr>
+                                <td>Classic Editor</td>
+                                <td>The legacy WordPress editor with metabox panels.</td>
+                            </tr>
+                            <tr>
+                                <td>Metabox</td>
+                                <td>A panel on the post/page editor (e.g., Featured Image, Categories).</td>
+                            </tr>
+                            <tr>
+                                <td>Dashboard Widget</td>
+                                <td>A box shown on the WordPress dashboard (e.g., At a Glance).</td>
+                            </tr>
+                            <tr>
+                                <td>2FA</td>
+                                <td>Two-Factor Authentication, an extra login security step.</td>
+                            </tr>
+                            <tr>
+                                <td>Wordfence</td>
+                                <td>A popular WordPress security plugin (used for 2FA integration in this plugin).</td>
+                            </tr>
+                            <tr>
+                                <td>Update Check</td>
+                                <td>The process WordPress uses to look for core, plugin, and theme updates.</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </section>
 
                 <section id="risks">
