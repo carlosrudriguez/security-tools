@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Security Tools
  * Description: Advanced security management tools for WordPress.
- * Version: 2.5
+ * Version: 2.6
  * Author: Carlos Rodríguez
  * Author URI: https://carlosrodriguez.mx/
  * License:           GPL-3.0-or-later
@@ -27,7 +27,6 @@
  * /assets/js/              - JavaScript files
  *
  * @package    Security_Tools
- * @version    2.5
  * @author     Carlos Rodríguez
  * =============================================================================
  */
@@ -42,8 +41,30 @@ defined( 'ABSPATH' ) || exit;
  * Define constants used throughout the plugin for paths, URLs, and version.
  */
 
-// Plugin version - update this when releasing new versions
-define( 'SECURITY_TOOLS_VERSION', '2.5' );
+// Plugin version derived from header Version line (single source of truth).
+if ( ! function_exists( 'security_tools_get_header_version' ) ) {
+    /**
+     * Read plugin version from this file's header.
+     *
+     * @return string
+     */
+    function security_tools_get_header_version() {
+        $fallback = '0.0.0';
+        $content  = @file_get_contents( __FILE__ );
+
+        if ( ! is_string( $content ) ) {
+            return $fallback;
+        }
+
+        if ( preg_match( '/^\\s*\\*\\s*Version:\\s*([^\\r\\n]+)/mi', $content, $matches ) ) {
+            return trim( $matches[1] );
+        }
+
+        return $fallback;
+    }
+}
+
+define( 'SECURITY_TOOLS_VERSION', security_tools_get_header_version() );
 
 // Plugin directory path (with trailing slash)
 define( 'SECURITY_TOOLS_PATH', plugin_dir_path( __FILE__ ) );
@@ -115,6 +136,9 @@ require_once SECURITY_TOOLS_PATH . 'features/class-feature-updates.php';
 
 // Disable WordPress emails
 require_once SECURITY_TOOLS_PATH . 'features/class-feature-emails.php';
+
+// Disable admin email verification prompts
+require_once SECURITY_TOOLS_PATH . 'features/class-feature-email-verification.php';
 
 // Disable comments system
 require_once SECURITY_TOOLS_PATH . 'features/class-feature-comments.php';

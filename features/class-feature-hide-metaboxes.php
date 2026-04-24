@@ -8,7 +8,6 @@
  *
  * @package    Security_Tools
  * @subpackage Features
- * @version    2.5
  * @author     Carlos Rodríguez
  */
 
@@ -459,7 +458,7 @@ class Security_Tools_Feature_Hide_Metaboxes {
                 });
                 
                 // Also check for Gutenberg plugin panels/sidebars if available
-                if (wp && wp.data && wp.data.select) {
+                if (typeof wp !== 'undefined' && wp.data && wp.data.select) {
                     try {
                         var editPost = wp.data.select('core/edit-post');
                         if (editPost && editPost.getMetaBoxesPerLocation) {

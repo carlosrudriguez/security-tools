@@ -6,7 +6,6 @@
  *
  * @package    Security_Tools
  * @subpackage Features
- * @version    2.5
  * @author     Carlos Rodríguez
  *
  * CHANGELOG v1.3:
@@ -204,7 +203,7 @@ class Security_Tools_Feature_Updates {
      */
     public function disable_plugins_api( $result, $action, $args ) {
         if ( in_array( $action, array( 'plugin_information', 'query_plugins' ), true ) ) {
-            return new WP_Error( 'plugins_api_disabled', 'Plugin API disabled by Security Tools' );
+            return new WP_Error( 'plugins_api_disabled', __( 'Plugin API is disabled by site policy.', 'security-tools' ) );
         }
         return $result;
     }
@@ -216,7 +215,7 @@ class Security_Tools_Feature_Updates {
      */
     public function disable_themes_api( $result, $action, $args ) {
         if ( in_array( $action, array( 'theme_information', 'query_themes' ), true ) ) {
-            return new WP_Error( 'themes_api_disabled', 'Theme API disabled by Security Tools' );
+            return new WP_Error( 'themes_api_disabled', __( 'Theme API is disabled by site policy.', 'security-tools' ) );
         }
         return $result;
     }

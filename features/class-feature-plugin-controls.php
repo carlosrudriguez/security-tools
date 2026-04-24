@@ -6,7 +6,6 @@
  *
  * @package    Security_Tools
  * @subpackage Features
- * @version    2.5
  * @author     Carlos Rodríguez
  *
  * CHANGELOG v1.3:
@@ -159,7 +158,7 @@ class Security_Tools_Feature_Plugin_Controls {
         if ( isset( $_GET['action'] ) ) {
             $blocked = array( 'activate', 'deactivate', 'delete', 'update-plugin' );
             if ( in_array( $_GET['action'], $blocked, true ) ) {
-                wp_die( __( 'Plugin management has been disabled by Security Tools.', 'security-tools' ), '', array( 'back_link' => true ) );
+                wp_die( __( 'Plugin management has been disabled by site policy.', 'security-tools' ), '', array( 'back_link' => true ) );
             }
         }
 
@@ -171,7 +170,7 @@ class Security_Tools_Feature_Plugin_Controls {
 
         foreach ( array( 'action', 'action2' ) as $action_key ) {
             if ( isset( $_POST[ $action_key ] ) && in_array( $_POST[ $action_key ], $blocked_actions, true ) ) {
-                wp_die( __( 'Plugin management has been disabled by Security Tools.', 'security-tools' ), '', array( 'back_link' => true ) );
+                wp_die( __( 'Plugin management has been disabled by site policy.', 'security-tools' ), '', array( 'back_link' => true ) );
             }
         }
     }

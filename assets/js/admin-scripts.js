@@ -6,7 +6,6 @@
  *
  * @package    Security_Tools
  * @subpackage Assets/JS
- * @version    2.5
  * @author     Carlos Rodríguez
  */
 

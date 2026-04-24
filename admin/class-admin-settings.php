@@ -8,7 +8,6 @@
  *
  * @package    Security_Tools
  * @subpackage Admin
- * @version    2.5
  * @author     Carlos Rodríguez
  */
 
@@ -385,16 +384,6 @@ class Security_Tools_Admin_Settings {
      */
 
     /**
-     * Get the sanitization handler
-     *
-     * @since  1.2
-     * @return Security_Tools_Admin_Sanitization
-     */
-    public function get_sanitization() {
-        return $this->sanitization;
-    }
-
-    /**
      * Get the settings group for a specific page slug
      *
      * Maps page slugs to their corresponding settings group constant.
@@ -406,18 +395,6 @@ class Security_Tools_Admin_Settings {
      * @return string|false The settings group name or false if not found
      */
     public static function get_settings_group_for_page( $page_slug ) {
-        $map = array(
-            Security_Tools_Utils::PAGE_GENERAL         => Security_Tools_Utils::SETTINGS_GROUP_GENERAL,
-            Security_Tools_Utils::PAGE_BRANDING        => Security_Tools_Utils::SETTINGS_GROUP_BRANDING,
-            Security_Tools_Utils::PAGE_SYSTEM_CONTROLS => Security_Tools_Utils::SETTINGS_GROUP_SYSTEM_CONTROLS,
-            Security_Tools_Utils::PAGE_ADMINS          => Security_Tools_Utils::SETTINGS_GROUP_ADMINS,
-            Security_Tools_Utils::PAGE_PLUGINS         => Security_Tools_Utils::SETTINGS_GROUP_PLUGINS,
-            Security_Tools_Utils::PAGE_THEMES          => Security_Tools_Utils::SETTINGS_GROUP_THEMES,
-            Security_Tools_Utils::PAGE_WIDGETS         => Security_Tools_Utils::SETTINGS_GROUP_WIDGETS,
-            Security_Tools_Utils::PAGE_ADMIN_BAR       => Security_Tools_Utils::SETTINGS_GROUP_ADMIN_BAR,
-            Security_Tools_Utils::PAGE_METABOXES       => Security_Tools_Utils::SETTINGS_GROUP_METABOXES,
-        );
-
-        return isset( $map[ $page_slug ] ) ? $map[ $page_slug ] : false;
+        return Security_Tools_Utils::get_settings_group_for_page( $page_slug );
     }
 }

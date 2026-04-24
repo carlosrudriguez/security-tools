@@ -7,7 +7,6 @@
  *
  * @package    Security_Tools
  * @subpackage Admin
- * @version    2.5
  * @author     Carlos Rodríguez
  */
 
@@ -250,8 +249,16 @@ class Security_Tools_Admin_Sanitization {
      * @return bool Sanitized boolean
      */
     public function sanitize_disable_comments( $input ) {
+        $existing    = Security_Tools_Utils::get_bool_option( Security_Tools_Utils::OPTION_DISABLE_COMMENTS );
+        $new_setting = (bool) $input;
+
+        // Reset one-time closure marker when the feature is being enabled again.
+        if ( ! $existing && $new_setting ) {
+            delete_option( Security_Tools_Utils::OPTION_COMMENTS_CLOSED_ONCE );
+        }
+
         return $this->sanitize_boolean_option(
-            $input,
+            $new_setting,
             Security_Tools_Utils::OPTION_DISABLE_COMMENTS,
             Security_Tools_Utils::OPTION_DISABLE_COMMENTS_LAST_CHANGE
         );

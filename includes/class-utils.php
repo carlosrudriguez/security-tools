@@ -7,7 +7,6 @@
  *
  * @package    Security_Tools
  * @subpackage Includes
- * @version    2.5
  * @author     Carlos Rodríguez
  */
 
@@ -46,6 +45,7 @@ class Security_Tools_Utils {
     const OPTION_DISABLE_EMAIL_CHECK    = 'security_tools_disable_email_check';
     const OPTION_HIDE_NOTICES           = 'security_tools_hide_notices';
     const OPTION_DISABLE_COMMENTS       = 'security_tools_disable_comments';
+    const OPTION_COMMENTS_CLOSED_ONCE   = 'security_tools_comments_closed_once';
     const OPTION_DISABLE_PLUGIN_CONTROLS = 'security_tools_disable_plugin_controls';
     const OPTION_DISABLE_THEME_CONTROLS = 'security_tools_disable_theme_controls';
     const OPTION_DISABLE_FRONTEND_ADMIN_BAR = 'security_tools_disable_frontend_admin_bar';
@@ -160,6 +160,7 @@ class Security_Tools_Utils {
             self::OPTION_DISABLE_EMAIL_CHECK,
             self::OPTION_HIDE_NOTICES,
             self::OPTION_DISABLE_COMMENTS,
+            self::OPTION_COMMENTS_CLOSED_ONCE,
             self::OPTION_DISABLE_PLUGIN_CONTROLS,
             self::OPTION_DISABLE_THEME_CONTROLS,
             self::OPTION_DISABLE_FRONTEND_ADMIN_BAR,

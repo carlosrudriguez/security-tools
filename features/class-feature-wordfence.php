@@ -6,7 +6,6 @@
  *
  * @package    Security_Tools
  * @subpackage Features
- * @version    2.5
  * @author     Carlos Rodríguez
  */
 
@@ -39,9 +38,31 @@ class Security_Tools_Feature_Wordfence {
      * @return bool
      */
     private function is_wordfence_active() {
-        return is_plugin_active( 'wordfence-login-security/wordfence-login-security.php' ) ||
+        $plugin_active = function_exists( 'is_plugin_active' ) &&
+            is_plugin_active( 'wordfence-login-security/wordfence-login-security.php' );
+
+        return $plugin_active ||
                class_exists( 'wordfence' ) ||
                defined( 'WORDFENCE_VERSION' );
+    }
+
+    /**
+     * Check whether current screen is Users (site or network admin)
+     *
+     * @since 2.6
+     * @param object|null $screen Current screen object.
+     * @return bool
+     */
+    private function is_users_screen( $screen ) {
+        if ( ! $screen ) {
+            return false;
+        }
+
+        if ( isset( $screen->id ) && in_array( $screen->id, array( 'users', 'users-network' ), true ) ) {
+            return true;
+        }
+
+        return isset( $screen->base ) && 'users' === $screen->base;
     }
 
     /**
@@ -52,7 +73,7 @@ class Security_Tools_Feature_Wordfence {
     public function hide_2fa_css() {
         $screen = get_current_screen();
 
-        if ( ! $screen || $screen->id !== 'users' ) {
+        if ( ! $this->is_users_screen( $screen ) ) {
             return;
         }
 
@@ -65,8 +86,14 @@ class Security_Tools_Feature_Wordfence {
             .subsubsub li a[href*="2fa-inactive"],
             .subsubsub li a[href*="wf-2fa-active"],
             .subsubsub li a[href*="wf-2fa-inactive"],
+            .subsubsub li a[href*="wfls-active"],
+            .subsubsub li a[href*="wfls-inactive"],
             .subsubsub li:has(a[href*="2fa-active"]),
-            .subsubsub li:has(a[href*="2fa-inactive"]) {
+            .subsubsub li:has(a[href*="2fa-inactive"]),
+            .subsubsub li:has(a[href*="wf-2fa-active"]),
+            .subsubsub li:has(a[href*="wf-2fa-inactive"]),
+            .subsubsub li:has(a[href*="wfls-active"]),
+            .subsubsub li:has(a[href*="wfls-inactive"]) {
                 display: none !important;
             }
         ';
@@ -84,7 +111,7 @@ class Security_Tools_Feature_Wordfence {
     public function hide_2fa_js() {
         $screen = get_current_screen();
 
-        if ( ! $screen || $screen->id !== 'users' ) {
+        if ( ! $this->is_users_screen( $screen ) ) {
             return;
         }
 
@@ -97,12 +124,13 @@ class Security_Tools_Feature_Wordfence {
         jQuery(document).ready(function($) {
             $('.subsubsub li a').each(function() {
                 var href = $(this).attr('href') || '';
-                var text = $(this).text();
 
                 if (href.includes('2fa-active') ||
                     href.includes('2fa-inactive') ||
-                    text.includes('2FA Active') ||
-                    text.includes('2FA Inactive')) {
+                    href.includes('wf-2fa-active') ||
+                    href.includes('wf-2fa-inactive') ||
+                    href.includes('wfls-active') ||
+                    href.includes('wfls-inactive')) {
                     $(this).closest('li').hide();
                 }
             });

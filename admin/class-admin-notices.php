@@ -7,7 +7,6 @@
  *
  * @package    Security_Tools
  * @subpackage Admin
- * @version    2.5
  * @author     Carlos Rodríguez
  */
 
@@ -228,6 +227,8 @@ class Security_Tools_Admin_Notices {
             ),
             Security_Tools_Utils::PAGE_BRANDING => array(
                 Security_Tools_Utils::OPTION_LEGEND_LAST_CHANGE,
+                Security_Tools_Utils::OPTION_LOGIN_LOGO_ID_LAST_CHANGE,
+                Security_Tools_Utils::OPTION_LOGIN_LOGO_URL_LAST_CHANGE,
             ),
             Security_Tools_Utils::PAGE_SYSTEM_CONTROLS => array(
                 Security_Tools_Utils::OPTION_DISABLE_UPDATES_LAST_CHANGE,
@@ -238,6 +239,8 @@ class Security_Tools_Admin_Notices {
                 Security_Tools_Utils::OPTION_DISABLE_PLUGIN_CONTROLS_LAST_CHANGE,
                 Security_Tools_Utils::OPTION_DISABLE_THEME_CONTROLS_LAST_CHANGE,
                 Security_Tools_Utils::OPTION_DISABLE_FRONTEND_ADMIN_BAR_LAST_CHANGE,
+                Security_Tools_Utils::OPTION_HIDE_LOGIN_ENABLED_LAST_CHANGE,
+                Security_Tools_Utils::OPTION_HIDE_LOGIN_SLUG_LAST_CHANGE,
             ),
             Security_Tools_Utils::PAGE_ADMINS => array(
                 Security_Tools_Utils::OPTION_ADMINS_LAST_CHANGE,
@@ -253,6 +256,7 @@ class Security_Tools_Admin_Notices {
             ),
             Security_Tools_Utils::PAGE_ADMIN_BAR => array(
                 Security_Tools_Utils::OPTION_ADMIN_BAR_LAST_CHANGE,
+                Security_Tools_Utils::OPTION_ADMIN_BAR_CSS_LAST_CHANGE,
             ),
             Security_Tools_Utils::PAGE_METABOXES => array(
                 Security_Tools_Utils::OPTION_METABOXES_LAST_CHANGE,

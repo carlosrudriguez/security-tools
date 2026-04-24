@@ -8,7 +8,6 @@
  *
  * @package    Security_Tools
  * @subpackage Admin
- * @version    2.5
  * @author     Carlos Rodríguez
  */
 
@@ -296,25 +295,6 @@ class Security_Tools_Admin_Page {
             </form>
         </div>
         <?php
-    }
-
-    /**
-     * ==========================================================================
-     * LEGACY RENDER METHOD
-     * ==========================================================================
-     * Kept for backwards compatibility. Not used in version 2.0.
-     */
-
-    /**
-     * Render the settings page (legacy - single page version)
-     *
-     * @since 1.2
-     * @deprecated 2.0 Use individual render methods instead
-     * @return void
-     */
-    public function render() {
-        // Redirect to General page for backwards compatibility
-        $this->render_general();
     }
 
     /**
@@ -706,7 +686,8 @@ class Security_Tools_Admin_Page {
     private function render_hide_login_section() {
         $hide_login_enabled = Security_Tools_Utils::get_bool_option( Security_Tools_Utils::OPTION_HIDE_LOGIN_ENABLED );
         $hide_login_slug    = get_option( Security_Tools_Utils::OPTION_HIDE_LOGIN_SLUG, '' );
-        $custom_login_url   = ! empty( $hide_login_slug ) ? home_url( sanitize_title( $hide_login_slug ) ) : '';
+        $custom_login_url   = Security_Tools_Feature_Hide_Login::get_custom_login_url();
+        $custom_login_url   = false === $custom_login_url ? '' : $custom_login_url;
         ?>
         <div class="security-tools-section-header" style="margin-top: 30px;">
             <h2><?php esc_html_e( 'Login Security', 'security-tools' ); ?></h2>

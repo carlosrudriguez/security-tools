@@ -7,7 +7,6 @@
  *
  * @package    Security_Tools
  * @subpackage Includes
- * @version    2.5
  * @author     Carlos Rodríguez
  */
 
@@ -86,6 +85,9 @@ class Security_Tools_Loader {
         // Disable emails
         $this->features['emails'] = new Security_Tools_Feature_Emails();
 
+        // Disable admin email verification prompts
+        $this->features['email_verification'] = new Security_Tools_Feature_Email_Verification();
+
         // Disable comments
         $this->features['comments'] = new Security_Tools_Feature_Comments();
 
@@ -131,13 +133,4 @@ class Security_Tools_Loader {
         return isset( $this->features[ $feature_key ] ) ? $this->features[ $feature_key ] : null;
     }
 
-    /**
-     * Get all feature instances
-     *
-     * @since  1.2
-     * @return array Array of feature instances
-     */
-    public function get_all_features() {
-        return $this->features;
-    }
 }

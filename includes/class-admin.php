@@ -7,7 +7,6 @@
  *
  * @package    Security_Tools
  * @subpackage Includes
- * @version    2.5
  * @author     Carlos Rodríguez
  */
 
@@ -359,56 +358,66 @@ class Security_Tools_Admin {
             return;
         }
 
-        // Check if this is an Admin Bar settings submission
         // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified by Settings API
-        if ( $_POST['option_page'] !== Security_Tools_Utils::SETTINGS_GROUP_ADMIN_BAR ) {
+        $option_page = sanitize_text_field( wp_unslash( $_POST['option_page'] ) );
+
+        $rules = array(
+            Security_Tools_Utils::SETTINGS_GROUP_ADMINS => array(
+                array(
+                    'marker' => '',
+                    'option' => Security_Tools_Utils::OPTION_HIDDEN_ADMINS,
+                ),
+            ),
+            Security_Tools_Utils::SETTINGS_GROUP_PLUGINS => array(
+                array(
+                    'marker' => '',
+                    'option' => Security_Tools_Utils::OPTION_HIDDEN_PLUGINS,
+                ),
+            ),
+            Security_Tools_Utils::SETTINGS_GROUP_THEMES => array(
+                array(
+                    'marker' => '',
+                    'option' => Security_Tools_Utils::OPTION_HIDDEN_THEMES,
+                ),
+            ),
+            Security_Tools_Utils::SETTINGS_GROUP_WIDGETS => array(
+                array(
+                    'marker' => 'security_tools_rendered_widgets',
+                    'option' => Security_Tools_Utils::OPTION_HIDDEN_WIDGETS,
+                ),
+            ),
+            Security_Tools_Utils::SETTINGS_GROUP_ADMIN_BAR => array(
+                array(
+                    'marker' => '',
+                    'option' => Security_Tools_Utils::OPTION_HIDDEN_ADMIN_BAR,
+                ),
+                array(
+                    'marker' => 'security_tools_admin_bar_css_rendered',
+                    'option' => Security_Tools_Utils::OPTION_HIDDEN_ADMIN_BAR_CSS,
+                ),
+            ),
+            Security_Tools_Utils::SETTINGS_GROUP_METABOXES => array(
+                array(
+                    'marker' => 'security_tools_rendered_metaboxes',
+                    'option' => Security_Tools_Utils::OPTION_HIDDEN_METABOXES,
+                ),
+            ),
+        );
+
+        if ( ! isset( $rules[ $option_page ] ) ) {
             return;
         }
 
-        // Check if the CSS tokenfield section was rendered (marker field present)
-        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified by Settings API
-        if ( ! isset( $_POST['security_tools_admin_bar_css_rendered'] ) ) {
-            return;
+        foreach ( $rules[ $option_page ] as $rule ) {
+            if ( ! empty( $rule['marker'] ) && ! isset( $_POST[ $rule['marker'] ] ) ) {
+                continue;
+            }
+
+            // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified by Settings API
+            if ( ! isset( $_POST[ $rule['option'] ] ) ) {
+                $_POST[ $rule['option'] ] = array();
+            }
         }
-
-        // If the marker is present but the array option is missing, initialize it as empty
-        // This ensures the sanitize callback will be triggered with an empty array
-        $option_key = Security_Tools_Utils::OPTION_HIDDEN_ADMIN_BAR_CSS;
-
-        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified by Settings API
-        if ( ! isset( $_POST[ $option_key ] ) ) {
-            $_POST[ $option_key ] = array();
-        }
-    }
-
-    /**
-     * Get admin page instance
-     *
-     * @since  1.2
-     * @return Security_Tools_Admin_Page
-     */
-    public function get_admin_page() {
-        return $this->admin_page;
-    }
-
-    /**
-     * Get admin settings instance
-     *
-     * @since  1.2
-     * @return Security_Tools_Admin_Settings
-     */
-    public function get_admin_settings() {
-        return $this->admin_settings;
-    }
-
-    /**
-     * Get admin notices instance
-     *
-     * @since  1.2
-     * @return Security_Tools_Admin_Notices
-     */
-    public function get_admin_notices() {
-        return $this->admin_notices;
     }
 
     /**

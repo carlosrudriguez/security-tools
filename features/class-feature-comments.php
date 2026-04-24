@@ -6,7 +6,6 @@
  *
  * @package    Security_Tools
  * @subpackage Features
- * @version    2.5
  * @author     Carlos Rodríguez
  */
 
@@ -62,8 +61,25 @@ class Security_Tools_Feature_Comments {
         // Remove widgets
         add_action( 'widgets_init', array( $this, 'disable_widgets' ), 1 );
 
-        // Close comments on all existing posts
-        add_action( 'wp_loaded', array( $this, 'close_all_comments' ) );
+        // Close comments on all existing posts once after enabling.
+        add_action( 'admin_init', array( $this, 'ensure_comments_closed' ) );
+    }
+
+    /**
+     * Close comments on published posts only once per enable cycle
+     *
+     * @since 2.6
+     * @return void
+     */
+    public function ensure_comments_closed() {
+        $already_closed = Security_Tools_Utils::get_bool_option( Security_Tools_Utils::OPTION_COMMENTS_CLOSED_ONCE );
+
+        if ( $already_closed ) {
+            return;
+        }
+
+        $this->close_all_comments();
+        update_option( Security_Tools_Utils::OPTION_COMMENTS_CLOSED_ONCE, true, false );
     }
 
     /**
@@ -193,8 +209,17 @@ class Security_Tools_Feature_Comments {
      */
     public function close_all_comments() {
         global $wpdb;
+
+        $needs_update = (int) $wpdb->get_var(
+            "SELECT ID FROM {$wpdb->posts} WHERE post_status = 'publish' AND (comment_status <> 'closed' OR ping_status <> 'closed') LIMIT 1"
+        );
+
+        if ( $needs_update <= 0 ) {
+            return;
+        }
+
         $wpdb->query(
-            "UPDATE {$wpdb->posts} SET comment_status = 'closed', ping_status = 'closed' WHERE post_status = 'publish'"
+            "UPDATE {$wpdb->posts} SET comment_status = 'closed', ping_status = 'closed' WHERE post_status = 'publish' AND (comment_status <> 'closed' OR ping_status <> 'closed')"
         );
     }
 }

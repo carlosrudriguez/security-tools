@@ -6,7 +6,6 @@
  *
  * @package    Security_Tools
  * @subpackage Features
- * @version    2.5
  * @author     Carlos Rodríguez
  *
  * CHANGELOG v1.3:
@@ -199,11 +198,26 @@ class Security_Tools_Feature_Theme_Controls {
             return;
         }
 
+        global $pagenow;
+
+        $theme_management_pages = array(
+            'themes.php',
+            'theme-install.php',
+            'theme-editor.php',
+            'customize.php',
+            'site-editor.php',
+            'update.php',
+        );
+
+        if ( ! in_array( $pagenow, $theme_management_pages, true ) ) {
+            return;
+        }
+
         // Block GET actions
         if ( isset( $_GET['action'] ) ) {
             $blocked = array( 'activate', 'delete', 'update-theme' );
             if ( in_array( $_GET['action'], $blocked, true ) ) {
-                wp_die( __( 'Theme management has been disabled by Security Tools.', 'security-tools' ), '', array( 'back_link' => true ) );
+                wp_die( __( 'Theme management has been disabled by site policy.', 'security-tools' ), '', array( 'back_link' => true ) );
             }
         }
 
@@ -211,7 +225,7 @@ class Security_Tools_Feature_Theme_Controls {
         if ( isset( $_POST['action'] ) ) {
             $blocked = array( 'activate', 'delete', 'update-selected-themes' );
             if ( in_array( $_POST['action'], $blocked, true ) ) {
-                wp_die( __( 'Theme management has been disabled by Security Tools.', 'security-tools' ), '', array( 'back_link' => true ) );
+                wp_die( __( 'Theme management has been disabled by site policy.', 'security-tools' ), '', array( 'back_link' => true ) );
             }
         }
     }

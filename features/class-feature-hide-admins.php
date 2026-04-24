@@ -6,7 +6,6 @@
  *
  * @package    Security_Tools
  * @subpackage Features
- * @version    2.5
  * @author     Carlos Rodríguez
  */
 
@@ -41,6 +40,25 @@ class Security_Tools_Feature_Hide_Admins {
      */
     private function get_hidden_admins() {
         return Security_Tools_Utils::get_array_option( Security_Tools_Utils::OPTION_HIDDEN_ADMINS );
+    }
+
+    /**
+     * Check whether current screen is Users (site or network admin)
+     *
+     * @since 2.6
+     * @param object|null $screen Current screen object.
+     * @return bool
+     */
+    private function is_users_screen( $screen ) {
+        if ( ! $screen ) {
+            return false;
+        }
+
+        if ( isset( $screen->id ) && in_array( $screen->id, array( 'users', 'users-network' ), true ) ) {
+            return true;
+        }
+
+        return isset( $screen->base ) && 'users' === $screen->base;
     }
 
     /**
@@ -89,19 +107,22 @@ class Security_Tools_Feature_Hide_Admins {
      * @return WP_User_Query Modified query
      */
     public function filter_users_query( $query ) {
-        if ( ! is_admin() || ! $query->is_main_query() ) {
+        if ( ! is_admin() || ! ( $query instanceof WP_User_Query ) ) {
             return $query;
         }
 
         $screen = get_current_screen();
-        if ( ! $screen || $screen->id !== 'users' ) {
+        if ( ! $this->is_users_screen( $screen ) ) {
             return $query;
         }
 
         $hidden = $this->get_hidden_admins();
 
         if ( ! empty( $hidden ) ) {
-            $query->set( 'exclude', $hidden );
+            $existing_exclude = $query->get( 'exclude' );
+            $existing_exclude = is_array( $existing_exclude ) ? $existing_exclude : array();
+
+            $query->set( 'exclude', array_values( array_unique( array_merge( $existing_exclude, $hidden ) ) ) );
         }
 
         return $query;
@@ -115,6 +136,12 @@ class Security_Tools_Feature_Hide_Admins {
      * @return array Modified arguments
      */
     public function modify_query_args( $args ) {
+        $screen = get_current_screen();
+
+        if ( ! $this->is_users_screen( $screen ) ) {
+            return $args;
+        }
+
         $hidden = $this->get_hidden_admins();
 
         if ( ! empty( $hidden ) ) {

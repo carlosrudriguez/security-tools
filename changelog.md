@@ -4,6 +4,105 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [2.6] - 2026-04-24
+
+### Summary
+
+Version 2.6 focuses on hardening and regression fixes across metaboxes, Wordfence integration, email verification suppression, action-scoping safety, and release/versioning consistency.
+
+### Added
+
+- **Email Verification runtime feature**
+  - New runtime class: `features/class-feature-email-verification.php`
+  - Hooks:
+    - `admin_email_check_interval` → forced to `0`
+    - `admin_email_remind_interval` → forced to `0`
+  - Wired into bootstrap and loader:
+    - `security-tools.php`
+    - `includes/class-loader.php`
+
+- **Regression test suite for reported and audit issues**
+  - New tests:
+    - `tests/reported_issues_regression.php`
+    - `tests/remaining_audit_regression.php`
+    - `tests/theme_controls_scope_regression.php`
+    - `tests/no_security_tools_in_messages.php`
+
+- **One-time comments closure marker**
+  - New option constant: `Security_Tools_Utils::OPTION_COMMENTS_CLOSED_ONCE`
+  - Used to prevent repeat database work for comment closure on every request.
+
+### Fixed
+
+- **Metaboxes can now be unhidden reliably**
+  - Generalized empty-array preprocessing in `includes/class-admin.php` for checkbox-array options across:
+    - Admins
+    - Plugins
+    - Themes
+    - Widgets
+    - Admin Bar
+    - Metaboxes
+  - Ensures Settings API receives explicit empty arrays when users uncheck all values.
+
+- **Wordfence Users tabs compatibility**
+  - Added handling for `wfls-active` / `wfls-inactive` in CSS and JS fallbacks.
+  - JS matching is now URL-marker based (no locale-dependent text matching).
+  - Supports Users screens in both site admin and network admin contexts.
+
+- **Disable Email Verification now works at runtime**
+  - Implemented real runtime enforcement instead of settings-only behavior.
+
+- **Theme controls no longer block Post/Page deletion**
+  - Theme action blocking is now scoped to theme-management contexts/pages.
+  - Prevents false positives on `post.php` / `edit.php` workflows.
+
+- **User-facing policy message cleanup**
+  - Replaced non-plugin-UI phrases mentioning plugin name in block/error messages with site-policy wording.
+  - Plugin UI copy continues to reference “Security Tools” where appropriate.
+
+- **Metabox discovery JS safety**
+  - Replaced direct `wp` global access checks with a safe `typeof wp !== 'undefined'` guard.
+
+- **Hide Admins query robustness**
+  - `pre_get_users` handling now uses `WP_User_Query`-appropriate checks and merges existing exclusions safely.
+
+- **Admin notices tracking alignment**
+  - Added missing change-tracking mappings for:
+    - Login logo ID / URL
+    - Hide login enabled / slug
+    - Admin bar CSS IDs
+
+### Changed
+
+- **Comments closure behavior**
+  - Moved from request-wide repeated closure attempts to a one-time migration per enable cycle.
+  - `sanitize_disable_comments()` resets one-time marker when the feature is enabled again.
+
+- **Settings-group mapping DRY improvement**
+  - `Security_Tools_Admin_Settings::get_settings_group_for_page()` now delegates to `Security_Tools_Utils::get_settings_group_for_page()`.
+
+- **Legacy renderer cleanup**
+  - Removed deprecated `Security_Tools_Admin_Page::render()` legacy method.
+
+- **Versioning to single source of truth**
+  - Runtime version now comes from plugin header `Version:` in `security-tools.php`.
+  - `SECURITY_TOOLS_VERSION` is derived from header version at runtime.
+  - Removed distributed `@version` tags from source headers to avoid drift.
+
+### Internal Cleanup
+
+- Removed orphaned/unreferenced internal getters with no in-repo usage:
+  - `Security_Tools_Admin::get_admin_page()`
+  - `Security_Tools_Admin::get_admin_settings()`
+  - `Security_Tools_Admin::get_admin_notices()`
+  - `Security_Tools_Admin_Settings::get_sanitization()`
+  - `Security_Tools_Loader::get_all_features()`
+- Kept `Security_Tools_Feature_Hide_Login::get_custom_login_url()` and integrated it into admin UI rendering.
+
+### Verification Notes
+
+- Full PHP lint and session regression tests pass for all fixes above.
+
 ## [2.5] - 2024
 
 ### Improved Feature: Hidden Post/Page Elements (Metabox Discovery)
