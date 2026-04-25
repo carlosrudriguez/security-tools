@@ -78,7 +78,7 @@ class Security_Tools_Feature_Comments {
             return;
         }
 
-        $this->close_all_comments();
+        self::close_all_comments();
         update_option( Security_Tools_Utils::OPTION_COMMENTS_CLOSED_ONCE, true, false );
     }
 
@@ -207,19 +207,85 @@ class Security_Tools_Feature_Comments {
      *
      * @since 1.2
      */
-    public function close_all_comments() {
+    public static function close_all_comments() {
         global $wpdb;
 
-        $needs_update = (int) $wpdb->get_var(
-            "SELECT ID FROM {$wpdb->posts} WHERE post_status = 'publish' AND (comment_status <> 'closed' OR ping_status <> 'closed') LIMIT 1"
+        $posts_to_close = $wpdb->get_results(
+            "SELECT ID, comment_status, ping_status FROM {$wpdb->posts} WHERE post_status = 'publish' AND (comment_status <> 'closed' OR ping_status <> 'closed')"
         );
 
-        if ( $needs_update <= 0 ) {
+        if ( empty( $posts_to_close ) ) {
             return;
         }
+
+        $backup = get_option( Security_Tools_Utils::OPTION_COMMENTS_STATUS_BACKUP, array() );
+        $backup = is_array( $backup ) ? $backup : array();
+
+        foreach ( $posts_to_close as $post ) {
+            $post_id = isset( $post->ID ) ? absint( $post->ID ) : 0;
+
+            if ( $post_id <= 0 || isset( $backup[ $post_id ] ) ) {
+                continue;
+            }
+
+            $backup[ $post_id ] = array(
+                'comment_status' => isset( $post->comment_status ) ? sanitize_key( $post->comment_status ) : 'closed',
+                'ping_status'    => isset( $post->ping_status ) ? sanitize_key( $post->ping_status ) : 'closed',
+            );
+        }
+
+        update_option( Security_Tools_Utils::OPTION_COMMENTS_STATUS_BACKUP, $backup, false );
 
         $wpdb->query(
             "UPDATE {$wpdb->posts} SET comment_status = 'closed', ping_status = 'closed' WHERE post_status = 'publish' AND (comment_status <> 'closed' OR ping_status <> 'closed')"
         );
+    }
+
+    /**
+     * Restore comment statuses changed by Security Tools.
+     *
+     * @since 2.6
+     * @return void
+     */
+    public static function restore_comment_statuses() {
+        global $wpdb;
+
+        $backup = get_option( Security_Tools_Utils::OPTION_COMMENTS_STATUS_BACKUP, array() );
+
+        if ( empty( $backup ) || ! is_array( $backup ) ) {
+            return;
+        }
+
+        foreach ( $backup as $post_id => $statuses ) {
+            $post_id = absint( $post_id );
+
+            if ( $post_id <= 0 || ! is_array( $statuses ) ) {
+                continue;
+            }
+
+            $comment_status = isset( $statuses['comment_status'] ) ? sanitize_key( $statuses['comment_status'] ) : 'closed';
+            $ping_status    = isset( $statuses['ping_status'] ) ? sanitize_key( $statuses['ping_status'] ) : 'closed';
+
+            if ( ! in_array( $comment_status, array( 'open', 'closed' ), true ) ) {
+                $comment_status = 'closed';
+            }
+
+            if ( ! in_array( $ping_status, array( 'open', 'closed' ), true ) ) {
+                $ping_status = 'closed';
+            }
+
+            $wpdb->update(
+                $wpdb->posts,
+                array(
+                    'comment_status' => $comment_status,
+                    'ping_status'    => $ping_status,
+                ),
+                array( 'ID' => $post_id ),
+                array( '%s', '%s' ),
+                array( '%d' )
+            );
+        }
+
+        delete_option( Security_Tools_Utils::OPTION_COMMENTS_STATUS_BACKUP );
     }
 }

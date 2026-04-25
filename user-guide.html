@@ -601,9 +601,10 @@ if ( file_exists( __DIR__ . '/security-tools/security-tools.php' ) ) {
                         <li><strong>Disable Frontend Admin Bar:</strong> hides the admin bar on the front-end.</li>
                     </ul>
 
-                    <p><strong>Hide Login Page</strong> lets you set a custom login URL. If enabled, visiting
-                        <code>wp-login.php</code> returns a 404 for non-logged-in users. Always test the new URL in an
-                        incognito window and bookmark it.</p>
+                    <p><strong>Hide Login Page</strong> lets you set a custom login URL. If enabled, visiting standard
+                        WordPress login routes such as <code>wp-login.php</code>, <code>/login</code>, or
+                        unauthenticated <code>/wp-admin/</code> returns a safe 404 for non-logged-in users. Always test
+                        the new URL in an incognito window and bookmark it.</p>
 
                     <h3>Admins</h3>
                     <p>Hides selected administrator accounts from the Users list. Hidden admins still have full access
@@ -630,8 +631,10 @@ if ( file_exists( __DIR__ . '/security-tools/security-tools.php' ) ) {
                         load all post types and build a complete list.</p>
 
                     <h3>Wordfence Integration</h3>
-                    <p>If Wordfence Login Security is active, Security Tools hides the 2FA filter links on the Users
-                        page. This does not change Wordfence functionality.</p>
+                    <p>If Wordfence or Wordfence Login Security is active, Security Tools hides the 2FA filter links on
+                        the Users page, including the current Wordfence <code>2FA Active</code> and
+                        <code>2FA Inactive</code> views that use <code>wf2fa</code> URLs. This does not change
+                        Wordfence functionality.</p>
                 </section>
 
                 <section id="menu-structure">
@@ -795,6 +798,13 @@ get_option( Security_Tools_Utils::OPTION_DISCOVERED_METABOXES ); <span style="co
                         <p>Disable the feature by renaming the plugin folder:</p>
                         <p><code>wp-content/mu-plugins/security-tools</code></p>
                         <p>Then log in at <code>wp-login.php</code>, restore the folder, and update the setting.</p>
+                    </div>
+                    <div class="card">
+                        <h3 style="margin-top:0">Wordfence 2FA tabs are still visible on Users</h3>
+                        <p>Clear any page/cache layer and reload <code>wp-admin/users.php</code>. Security Tools hides
+                            the Wordfence <code>wf2fa=active</code> and <code>wf2fa=inactive</code> view tabs with CSS
+                            and a JavaScript fallback, without changing Wordfence's underlying 2FA status or filtering
+                            behavior.</p>
                     </div>
                     <div class="card">
                         <h3 style="margin-top:0">Metaboxes are missing from the list</h3>

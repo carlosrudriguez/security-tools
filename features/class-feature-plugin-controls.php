@@ -58,6 +58,9 @@ class Security_Tools_Feature_Plugin_Controls {
 
         // Block actions
         add_action( 'admin_init', array( $this, 'block_actions' ), 1 );
+
+        // Enforce the policy for code paths that check capabilities directly.
+        add_filter( 'user_has_cap', array( $this, 'filter_plugin_capabilities' ), 10, 4 );
     }
 
     /**
@@ -154,24 +157,81 @@ class Security_Tools_Feature_Plugin_Controls {
             return;
         }
 
-        // Block GET actions
-        if ( isset( $_GET['action'] ) ) {
-            $blocked = array( 'activate', 'deactivate', 'delete', 'update-plugin' );
-            if ( in_array( $_GET['action'], $blocked, true ) ) {
-                wp_die( __( 'Plugin management has been disabled by site policy.', 'security-tools' ), '', array( 'back_link' => true ) );
-            }
+        global $pagenow;
+
+        if ( ! in_array( $pagenow, array( 'plugins.php', 'plugin-install.php', 'plugin-editor.php', 'update.php' ), true ) ) {
+            return;
         }
 
-        // Block POST actions
-        $blocked_actions = array(
+        $action  = $this->get_request_action( 'action' );
+        $action2 = $this->get_request_action( 'action2' );
+
+        $blocked_single_actions = array(
+            'activate',
+            'deactivate',
+            'delete',
+            'update-plugin',
+            'upgrade-plugin',
+            'install-plugin',
+            'upload-plugin',
+        );
+
+        if ( in_array( $action, $blocked_single_actions, true ) ) {
+            wp_die( __( 'Plugin management has been disabled by site policy.', 'security-tools' ), '', array( 'back_link' => true ) );
+        }
+
+        $blocked_bulk_actions = array(
             'activate-selected', 'deactivate-selected', 'delete-selected',
             'update-selected', 'enable-auto-update-selected', 'disable-auto-update-selected'
         );
 
-        foreach ( array( 'action', 'action2' ) as $action_key ) {
-            if ( isset( $_POST[ $action_key ] ) && in_array( $_POST[ $action_key ], $blocked_actions, true ) ) {
-                wp_die( __( 'Plugin management has been disabled by site policy.', 'security-tools' ), '', array( 'back_link' => true ) );
-            }
+        if ( in_array( $action, $blocked_bulk_actions, true ) || in_array( $action2, $blocked_bulk_actions, true ) ) {
+            wp_die( __( 'Plugin management has been disabled by site policy.', 'security-tools' ), '', array( 'back_link' => true ) );
         }
+    }
+
+    /**
+     * Get a sanitized admin request action.
+     *
+     * @since 2.6
+     * @param string $key Request key.
+     * @return string
+     */
+    private function get_request_action( $key ) {
+        if ( isset( $_POST[ $key ] ) ) {
+            return sanitize_key( wp_unslash( $_POST[ $key ] ) );
+        }
+
+        if ( isset( $_GET[ $key ] ) ) {
+            return sanitize_key( wp_unslash( $_GET[ $key ] ) );
+        }
+
+        return '';
+    }
+
+    /**
+     * Remove plugin-management capabilities while controls are disabled.
+     *
+     * @since 2.6
+     * @param array $allcaps User capability map.
+     * @param array $caps    Primitive capabilities being checked.
+     * @param array $args    Requested capability arguments.
+     * @param mixed $user    WP_User instance.
+     * @return array
+     */
+    public function filter_plugin_capabilities( $allcaps, $caps, $args, $user ) {
+        $blocked_caps = array(
+            'delete_plugins',
+            'edit_plugins',
+            'install_plugins',
+            'upload_plugins',
+            'update_plugins',
+        );
+
+        foreach ( $blocked_caps as $cap ) {
+            $allcaps[ $cap ] = false;
+        }
+
+        return $allcaps;
     }
 }

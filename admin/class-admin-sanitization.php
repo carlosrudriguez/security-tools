@@ -121,15 +121,6 @@ class Security_Tools_Admin_Sanitization {
             return true;
         }
 
-        // Fallback: check file extension for SVG
-        $file_path = get_attached_file( $attachment_id );
-        if ( $file_path ) {
-            $extension = strtolower( pathinfo( $file_path, PATHINFO_EXTENSION ) );
-            if ( 'svg' === $extension ) {
-                return true;
-            }
-        }
-
         return false;
     }
 
@@ -149,7 +140,7 @@ class Security_Tools_Admin_Sanitization {
 
         // If not empty, validate and sanitize the URL
         if ( ! empty( $input ) ) {
-            $sanitized = esc_url_raw( trim( $input ) );
+            $sanitized = esc_url_raw( trim( $input ), array( 'http', 'https' ) );
 
             // If the URL became empty after sanitization, it was invalid
             if ( empty( $sanitized ) && ! empty( $input ) ) {
@@ -255,6 +246,13 @@ class Security_Tools_Admin_Sanitization {
         // Reset one-time closure marker when the feature is being enabled again.
         if ( ! $existing && $new_setting ) {
             delete_option( Security_Tools_Utils::OPTION_COMMENTS_CLOSED_ONCE );
+            delete_option( Security_Tools_Utils::OPTION_COMMENTS_STATUS_BACKUP );
+        }
+
+        // Restore previous post comment states when the feature is disabled.
+        if ( $existing && ! $new_setting && class_exists( 'Security_Tools_Feature_Comments' ) ) {
+            Security_Tools_Feature_Comments::restore_comment_statuses();
+            delete_option( Security_Tools_Utils::OPTION_COMMENTS_CLOSED_ONCE );
         }
 
         return $this->sanitize_boolean_option(
@@ -332,8 +330,28 @@ class Security_Tools_Admin_Sanitization {
      * @return bool Sanitized boolean
      */
     public function sanitize_hide_login_enabled( $input ) {
+        $new_setting = (bool) $input;
+
+        if ( $new_setting ) {
+            // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified by Settings API.
+            $posted_slug = isset( $_POST[ Security_Tools_Utils::OPTION_HIDE_LOGIN_SLUG ] )
+                ? sanitize_title( wp_unslash( $_POST[ Security_Tools_Utils::OPTION_HIDE_LOGIN_SLUG ] ) )
+                : sanitize_title( get_option( Security_Tools_Utils::OPTION_HIDE_LOGIN_SLUG, '' ) );
+
+            if ( '' === $posted_slug ) {
+                add_settings_error(
+                    Security_Tools_Utils::OPTION_HIDE_LOGIN_ENABLED,
+                    'missing_login_slug',
+                    __( 'Hide Login cannot be enabled without a custom login slug.', 'security-tools' ),
+                    'error'
+                );
+
+                return Security_Tools_Utils::get_bool_option( Security_Tools_Utils::OPTION_HIDE_LOGIN_ENABLED );
+            }
+        }
+
         return $this->sanitize_boolean_option(
-            $input,
+            $new_setting,
             Security_Tools_Utils::OPTION_HIDE_LOGIN_ENABLED,
             Security_Tools_Utils::OPTION_HIDE_LOGIN_ENABLED_LAST_CHANGE
         );
@@ -408,12 +426,87 @@ class Security_Tools_Admin_Sanitization {
             return $existing; // Return existing value
         }
 
+        if ( $this->slug_conflicts_with_public_rewrite( $sanitized ) ) {
+            add_settings_error(
+                Security_Tools_Utils::OPTION_HIDE_LOGIN_SLUG,
+                'slug_rewrite_conflict',
+                sprintf(
+                    /* translators: %s: The slug that conflicts with a public rewrite base */
+                    __( 'The login slug "%s" conflicts with a public WordPress URL. Please choose a different slug.', 'security-tools' ),
+                    esc_html( $sanitized )
+                ),
+                'error'
+            );
+            return $existing;
+        }
+
         // Track change if different
         if ( $sanitized !== $existing ) {
             update_option( Security_Tools_Utils::OPTION_HIDE_LOGIN_SLUG_LAST_CHANGE, true );
         }
 
         return $sanitized;
+    }
+
+    /**
+     * Check whether a slug conflicts with public post type or taxonomy rewrite bases.
+     *
+     * @since 2.6
+     * @param string $slug Sanitized slug.
+     * @return bool
+     */
+    private function slug_conflicts_with_public_rewrite( $slug ) {
+        if ( '' === $slug ) {
+            return false;
+        }
+
+        $reserved = array();
+
+        if ( function_exists( 'get_post_types' ) ) {
+            $post_types = get_post_types( array( 'public' => true ), 'objects' );
+            if ( is_array( $post_types ) ) {
+                foreach ( $post_types as $post_type ) {
+                    if ( ! is_object( $post_type ) ) {
+                        continue;
+                    }
+
+                    if ( ! empty( $post_type->name ) ) {
+                        $reserved[] = $post_type->name;
+                    }
+
+                    if ( ! empty( $post_type->rewrite ) && is_array( $post_type->rewrite ) && ! empty( $post_type->rewrite['slug'] ) ) {
+                        $reserved[] = $post_type->rewrite['slug'];
+                    }
+
+                    if ( ! empty( $post_type->has_archive ) ) {
+                        $reserved[] = true === $post_type->has_archive ? $post_type->name : $post_type->has_archive;
+                    }
+                }
+            }
+        }
+
+        if ( function_exists( 'get_taxonomies' ) ) {
+            $taxonomies = get_taxonomies( array( 'public' => true ), 'objects' );
+            if ( is_array( $taxonomies ) ) {
+                foreach ( $taxonomies as $taxonomy ) {
+                    if ( ! is_object( $taxonomy ) ) {
+                        continue;
+                    }
+
+                    if ( ! empty( $taxonomy->name ) ) {
+                        $reserved[] = $taxonomy->name;
+                    }
+
+                    if ( ! empty( $taxonomy->rewrite ) && is_array( $taxonomy->rewrite ) && ! empty( $taxonomy->rewrite['slug'] ) ) {
+                        $reserved[] = $taxonomy->rewrite['slug'];
+                    }
+                }
+            }
+        }
+
+        $reserved = array_unique( array_filter( array_map( 'sanitize_title', $reserved ) ) );
+
+        return in_array( $slug, $reserved, true );
     }
 
     /**
@@ -825,7 +918,7 @@ class Security_Tools_Admin_Sanitization {
      * @return bool Sanitized boolean value
      */
     private function sanitize_boolean_option( $input, $option_name, $tracking_option ) {
-        $existing    = get_option( $option_name, false );
+        $existing    = Security_Tools_Utils::get_bool_option( $option_name );
         $new_setting = (bool) $input;
 
         if ( $existing !== $new_setting ) {

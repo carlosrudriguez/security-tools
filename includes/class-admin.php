@@ -97,6 +97,9 @@ class Security_Tools_Admin {
      * @return void
      */
     private function register_hooks() {
+        // Capture the first settings-page administrator as the authorized owner.
+        add_action( 'admin_init', array( $this, 'maybe_initialize_authorized_admin' ), 0 );
+
         // Add admin menu
         add_action( 'admin_menu', array( $this, 'add_admin_menu' ) );
 
@@ -126,6 +129,10 @@ class Security_Tools_Admin {
      * @return void
      */
     public function add_admin_menu() {
+        if ( ! Security_Tools_Utils::current_user_can_manage() ) {
+            return;
+        }
+
         // Add top-level menu
         // Position 1 places it as the first menu item (after Dashboard at 2)
         // Using 1.1 to ensure it appears before Dashboard
@@ -227,6 +234,10 @@ class Security_Tools_Admin {
      * @return void
      */
     public function enqueue_assets( $hook_suffix ) {
+        if ( ! Security_Tools_Utils::current_user_can_manage() ) {
+            return;
+        }
+
         // Build list of valid hook suffixes for our pages
         // Top-level page: toplevel_page_{slug}
         // Subpages: security-tools_page_{slug}
@@ -258,6 +269,7 @@ class Security_Tools_Admin {
 
         // Check if we're on the Branding page for Media Library
         $is_branding_page = ( 'security-tools_page_' . Security_Tools_Utils::PAGE_BRANDING === $hook_suffix );
+        $is_metaboxes_page = ( 'security-tools_page_' . Security_Tools_Utils::PAGE_METABOXES === $hook_suffix );
 
         // Determine script dependencies
         $script_deps = array();
@@ -289,6 +301,29 @@ class Security_Tools_Admin {
                 )
             );
         }
+
+        if ( $is_metaboxes_page ) {
+            $loader     = Security_Tools_Loader::get_instance();
+            $feature    = $loader->get_feature( 'hide_metaboxes' );
+            $post_types = $feature ? $feature->get_scannable_post_types() : array();
+
+            wp_localize_script(
+                'security-tools-admin',
+                'securityToolsScan',
+                array(
+                    'nonce'     => wp_create_nonce( 'security_tools_manual_scan' ),
+                    'ajaxurl'   => admin_url( 'admin-ajax.php' ),
+                    'postTypes' => $post_types,
+                    'strings'   => array(
+                        'scanning'   => __( 'Scanning...', 'security-tools' ),
+                        'complete'   => __( 'Scan complete!', 'security-tools' ),
+                        'error'      => __( 'Scan error. Please try again.', 'security-tools' ),
+                        'discovered' => __( 'Discovered %d metaboxes.', 'security-tools' ),
+                        'reloading'  => __( 'Reloading page...', 'security-tools' ),
+                    ),
+                )
+            );
+        }
     }
 
     /**
@@ -308,14 +343,20 @@ class Security_Tools_Admin {
         }
 
         // Verify nonce
-        if ( ! isset( $_POST['security_tools_reset_nonce'] ) ||
-             ! wp_verify_nonce( $_POST['security_tools_reset_nonce'], 'security_tools_reset_action' ) ) {
+        $reset_nonce = isset( $_POST['security_tools_reset_nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['security_tools_reset_nonce'] ) ) : '';
+
+        if ( ! $reset_nonce || ! wp_verify_nonce( $reset_nonce, 'security_tools_reset_action' ) ) {
             wp_die( __( 'Security check failed', 'security-tools' ) );
         }
 
         // Check capabilities
         if ( ! Security_Tools_Utils::current_user_can_manage() ) {
             wp_die( __( 'Insufficient permissions', 'security-tools' ) );
+        }
+
+        // Restore comment states before deleting the backup option.
+        if ( class_exists( 'Security_Tools_Feature_Comments' ) ) {
+            Security_Tools_Feature_Comments::restore_comment_statuses();
         }
 
         // Delete all main options
@@ -334,6 +375,20 @@ class Security_Tools_Admin {
         // Redirect back to General page to show the reset notice
         wp_safe_redirect( admin_url( 'admin.php?page=' . Security_Tools_Utils::PAGE_GENERAL ) );
         exit;
+    }
+
+    /**
+     * Initialize Security Tools ownership from the first settings page visit.
+     *
+     * @since 2.6
+     * @return void
+     */
+    public function maybe_initialize_authorized_admin() {
+        if ( ! Security_Tools_Utils::get_current_page_slug() ) {
+            return;
+        }
+
+        Security_Tools_Utils::maybe_initialize_authorized_admin();
     }
 
     /**

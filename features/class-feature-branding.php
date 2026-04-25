@@ -40,6 +40,7 @@ class Security_Tools_Feature_Branding {
         add_filter( 'admin_footer_text', array( $this, 'modify_footer' ) );
 
         // Custom login logo functionality (added in 2.3)
+        add_action( 'login_enqueue_scripts', array( $this, 'enqueue_login_logo_script' ) );
         add_action( 'login_head', array( $this, 'output_custom_login_logo_css' ) );
         add_filter( 'login_headerurl', array( $this, 'modify_login_header_url' ) );
         add_filter( 'login_headertext', array( $this, 'modify_login_header_text' ) );
@@ -132,15 +133,6 @@ class Security_Tools_Feature_Branding {
         $mime_type = get_post_mime_type( $logo_id );
         $is_svg    = ( 'image/svg+xml' === $mime_type || 'image/svg' === $mime_type );
 
-        // Fallback: check file extension for SVG
-        if ( ! $is_svg ) {
-            $file_path = get_attached_file( $logo_id );
-            if ( $file_path ) {
-                $extension = strtolower( pathinfo( $file_path, PATHINFO_EXTENSION ) );
-                $is_svg    = ( 'svg' === $extension );
-            }
-        }
-
         // Get the image dimensions for proper aspect ratio
         // First try wp_get_attachment_metadata for processed images
         $image_meta = wp_get_attachment_metadata( $logo_id );
@@ -206,20 +198,29 @@ class Security_Tools_Feature_Branding {
                 margin: 0 auto 25px;
             }
         </style>
-        <script type="text/javascript">
-            /**
-             * Security Tools - Open login logo link in new tab
-             * @since 2.3
-             */
-            document.addEventListener('DOMContentLoaded', function() {
-                var logoLink = document.querySelector('#login h1 a, .login h1 a');
-                if (logoLink) {
-                    logoLink.setAttribute('target', '_blank');
-                    logoLink.setAttribute('rel', 'noopener noreferrer');
-                }
-            });
-        </script>
         <?php
+    }
+
+    /**
+     * Enqueue login logo behavior.
+     *
+     * @since 2.6
+     * @return void
+     */
+    public function enqueue_login_logo_script() {
+        $logo_id = absint( get_option( Security_Tools_Utils::OPTION_LOGIN_LOGO_ID, 0 ) );
+
+        if ( empty( $logo_id ) ) {
+            return;
+        }
+
+        wp_enqueue_script(
+            'security-tools-login-logo-link',
+            SECURITY_TOOLS_URL . 'assets/js/login-logo-link.js',
+            array(),
+            SECURITY_TOOLS_VERSION,
+            true
+        );
     }
 
     /**
@@ -305,15 +306,6 @@ class Security_Tools_Feature_Branding {
         $is_standard_image = wp_attachment_is_image( $attachment_id );
         $mime_type         = get_post_mime_type( $attachment_id );
         $is_svg            = ( 'image/svg+xml' === $mime_type || 'image/svg' === $mime_type );
-
-        // Fallback: check file extension for SVG
-        if ( ! $is_svg ) {
-            $file_path = get_attached_file( $attachment_id );
-            if ( $file_path ) {
-                $extension = strtolower( pathinfo( $file_path, PATHINFO_EXTENSION ) );
-                $is_svg    = ( 'svg' === $extension );
-            }
-        }
 
         if ( ! $is_standard_image && ! $is_svg ) {
             return '';

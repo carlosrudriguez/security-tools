@@ -38,6 +38,7 @@ class Security_Tools_Utils {
 
     // General Settings (boolean toggles)
     const OPTION_AUTOHIDE_MENU = 'security_tools_autohide_menu';
+    const OPTION_AUTHORIZED_ADMINS = 'security_tools_authorized_admins';
 
     // System Controls (boolean toggles)
     const OPTION_DISABLE_UPDATES        = 'security_tools_disable_updates';
@@ -46,6 +47,7 @@ class Security_Tools_Utils {
     const OPTION_HIDE_NOTICES           = 'security_tools_hide_notices';
     const OPTION_DISABLE_COMMENTS       = 'security_tools_disable_comments';
     const OPTION_COMMENTS_CLOSED_ONCE   = 'security_tools_comments_closed_once';
+    const OPTION_COMMENTS_STATUS_BACKUP = 'security_tools_comments_status_backup';
     const OPTION_DISABLE_PLUGIN_CONTROLS = 'security_tools_disable_plugin_controls';
     const OPTION_DISABLE_THEME_CONTROLS = 'security_tools_disable_theme_controls';
     const OPTION_DISABLE_FRONTEND_ADMIN_BAR = 'security_tools_disable_frontend_admin_bar';
@@ -65,7 +67,8 @@ class Security_Tools_Utils {
 
     // Discovered Metaboxes (array option for dynamic metabox detection)
     // Stores metaboxes discovered from post edit screens for the Metaboxes feature
-    const OPTION_DISCOVERED_METABOXES = 'security_tools_discovered_metaboxes';
+    const OPTION_DISCOVERED_METABOXES             = 'security_tools_discovered_metaboxes';
+    const OPTION_DISCOVERED_METABOXES_SCAN_BUFFER = 'security_tools_discovered_metaboxes_scan_buffer';
 
     // Change tracking options (used for admin notices)
     const OPTION_LEGEND_LAST_CHANGE              = 'security_tools_legend_last_change';
@@ -161,6 +164,7 @@ class Security_Tools_Utils {
             self::OPTION_HIDE_NOTICES,
             self::OPTION_DISABLE_COMMENTS,
             self::OPTION_COMMENTS_CLOSED_ONCE,
+            self::OPTION_COMMENTS_STATUS_BACKUP,
             self::OPTION_DISABLE_PLUGIN_CONTROLS,
             self::OPTION_DISABLE_THEME_CONTROLS,
             self::OPTION_DISABLE_FRONTEND_ADMIN_BAR,
@@ -172,11 +176,13 @@ class Security_Tools_Utils {
             self::OPTION_HIDDEN_ADMIN_BAR_CSS,
             self::OPTION_HIDDEN_METABOXES,
             self::OPTION_DISCOVERED_METABOXES,
+            self::OPTION_DISCOVERED_METABOXES_SCAN_BUFFER,
             self::OPTION_AUTOHIDE_MENU,
             self::OPTION_HIDE_LOGIN_ENABLED,
             self::OPTION_HIDE_LOGIN_SLUG,
             self::OPTION_LOGIN_LOGO_ID,
             self::OPTION_LOGIN_LOGO_URL,
+            self::OPTION_AUTHORIZED_ADMINS,
         );
     }
 
@@ -221,7 +227,39 @@ class Security_Tools_Utils {
      * @return bool True if user can manage plugin settings
      */
     public static function current_user_can_manage() {
-        return current_user_can( self::REQUIRED_CAPABILITY );
+        if ( ! current_user_can( self::REQUIRED_CAPABILITY ) ) {
+            return false;
+        }
+
+        $authorized_admins = array_map( 'absint', self::get_array_option( self::OPTION_AUTHORIZED_ADMINS ) );
+
+        if ( empty( $authorized_admins ) ) {
+            return true;
+        }
+
+        return in_array( get_current_user_id(), $authorized_admins, true );
+    }
+
+    /**
+     * Initialize settings ownership for the first administrator who opens the plugin.
+     *
+     * @since 2.6
+     * @return void
+     */
+    public static function maybe_initialize_authorized_admin() {
+        if ( ! current_user_can( self::REQUIRED_CAPABILITY ) ) {
+            return;
+        }
+
+        if ( ! empty( self::get_array_option( self::OPTION_AUTHORIZED_ADMINS ) ) ) {
+            return;
+        }
+
+        $user_id = get_current_user_id();
+
+        if ( $user_id > 0 ) {
+            update_option( self::OPTION_AUTHORIZED_ADMINS, array( $user_id ), false );
+        }
     }
 
     /**
@@ -440,5 +478,62 @@ class Security_Tools_Utils {
                 'url'   => admin_url( 'admin.php?page=' . self::PAGE_METABOXES ),
             ),
         );
+    }
+
+    /**
+     * Escape a value for use as a CSS identifier in generated selectors.
+     *
+     * @since 2.6
+     * @param mixed $value Raw identifier.
+     * @return string CSS-safe identifier.
+     */
+    public static function esc_css_identifier( $value ) {
+        $value  = (string) $value;
+        $result = '';
+        $length = strlen( $value );
+
+        for ( $i = 0; $i < $length; $i++ ) {
+            $char = $value[ $i ];
+            $ord  = ord( $char );
+
+            $is_alphanumeric = ( $ord >= 48 && $ord <= 57 ) || ( $ord >= 65 && $ord <= 90 ) || ( $ord >= 97 && $ord <= 122 );
+            $is_safe         = $is_alphanumeric || '_' === $char || '-' === $char;
+            $is_bad_start    = ( 0 === $i && ( ( $ord >= 48 && $ord <= 57 ) || '-' === $char ) );
+
+            if ( $is_safe && ! $is_bad_start ) {
+                $result .= $char;
+                continue;
+            }
+
+            $result .= '\\' . strtoupper( dechex( $ord ) ) . ' ';
+        }
+
+        return $result;
+    }
+
+    /**
+     * Escape a value for use inside a CSS quoted string.
+     *
+     * @since 2.6
+     * @param mixed $value Raw string.
+     * @return string CSS-safe string content.
+     */
+    public static function esc_css_string( $value ) {
+        $value  = (string) $value;
+        $result = '';
+        $length = strlen( $value );
+
+        for ( $i = 0; $i < $length; $i++ ) {
+            $char = $value[ $i ];
+
+            if ( preg_match( '/[a-zA-Z0-9 _-]/', $char ) ) {
+                $result .= $char;
+                continue;
+            }
+
+            $result .= '\\' . strtoupper( dechex( ord( $char ) ) ) . ' ';
+        }
+
+        return $result;
     }
 }

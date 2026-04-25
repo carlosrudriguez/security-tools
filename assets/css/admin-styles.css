@@ -67,6 +67,9 @@
     --st-shadow-btn-reset: 0 2px 4px rgba(108, 117, 125, 0.3);
     --st-shadow-btn-reset-hover: 0 3px 8px rgba(108, 117, 125, 0.4);
 
+    /* Shape */
+    --st-border-radius: 4px;
+
     /* Font Sizes */
     --st-font-large: 28px;
     --st-font-medium: 20px;

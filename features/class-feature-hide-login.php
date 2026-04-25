@@ -378,9 +378,9 @@ class Security_Tools_Feature_Hide_Login {
     /**
      * Trigger a 404 error response
      *
-     * Sets the WordPress query to 404 status and loads the theme's
-     * 404 template. This ensures the 404 looks consistent with the
-     * site's design.
+     * Sets the WordPress query to 404 status and returns a safe 404 response.
+     * Do not include the theme template here: this method can run before the
+     * normal theme/template context exists, especially from login_init.
      *
      * @since 2.2
      * @return void
@@ -397,20 +397,50 @@ class Security_Tools_Feature_Hide_Login {
             $wp_query->set_404();
         }
 
-        // Try to load the theme's 404 template
-        $template_404 = get_404_template();
-
-        if ( $template_404 ) {
-            include $template_404;
-            exit;
-        }
-
-        // Fallback: simple 404 response
         wp_die(
             esc_html__( 'Page not found.', 'security-tools' ),
             esc_html__( '404 Not Found', 'security-tools' ),
-            array( 'response' => 404 )
+            array(
+                'response'  => 404,
+                'back_link' => false,
+            )
         );
+    }
+
+    /**
+     * Prepare globals expected by wp-login.php.
+     *
+     * wp-login.php is normally executed in the global scope. This feature loads
+     * it from a class method, so expected login variables must be initialized as
+     * globals before the core file is required.
+     *
+     * @since 2.6
+     * @return void
+     */
+    private function prepare_login_globals() {
+        global $action, $error, $interim_login, $user_login;
+
+        if ( ! isset( $action ) || '' === $action ) {
+            $request_action = '';
+
+            if ( isset( $_REQUEST['action'] ) && is_string( $_REQUEST['action'] ) ) {
+                $request_action = sanitize_key( wp_unslash( $_REQUEST['action'] ) );
+            }
+
+            $action = '' !== $request_action ? $request_action : 'login';
+        }
+
+        if ( ! isset( $error ) ) {
+            $error = '';
+        }
+
+        if ( ! isset( $user_login ) ) {
+            $user_login = '';
+        }
+
+        if ( ! isset( $interim_login ) ) {
+            $interim_login = isset( $_REQUEST['interim-login'] );
+        }
     }
 
     /**
@@ -433,6 +463,10 @@ class Security_Tools_Feature_Hide_Login {
         $login_path = ABSPATH . 'wp-login.php';
 
         if ( file_exists( $login_path ) ) {
+            global $action, $error, $errors, $interim_login, $user_login;
+
+            $this->prepare_login_globals();
+
             // Include the login file
             // We need to use require since wp-login.php contains functions and exit calls
             require $login_path;
@@ -462,7 +496,7 @@ class Security_Tools_Feature_Hide_Login {
 
         // Add redirect parameter if specified
         if ( ! empty( $redirect ) ) {
-            $custom_login_url = add_query_arg( 'redirect_to', urlencode( $redirect ), $custom_login_url );
+            $custom_login_url = add_query_arg( 'redirect_to', $redirect, $custom_login_url );
         }
 
         // Add reauth parameter if forcing reauthentication
@@ -491,7 +525,7 @@ class Security_Tools_Feature_Hide_Login {
 
         // Add redirect parameter if specified
         if ( ! empty( $redirect ) ) {
-            $custom_logout_url = add_query_arg( 'redirect_to', urlencode( $redirect ), $custom_logout_url );
+            $custom_logout_url = add_query_arg( 'redirect_to', $redirect, $custom_logout_url );
         }
 
         return $custom_logout_url;
@@ -510,7 +544,7 @@ class Security_Tools_Feature_Hide_Login {
         $custom_url = add_query_arg( 'action', 'lostpassword', $custom_url );
 
         if ( ! empty( $redirect ) ) {
-            $custom_url = add_query_arg( 'redirect_to', urlencode( $redirect ), $custom_url );
+            $custom_url = add_query_arg( 'redirect_to', $redirect, $custom_url );
         }
 
         return $custom_url;
@@ -594,20 +628,12 @@ class Security_Tools_Feature_Hide_Login {
     /**
      * Filter wp_redirect to catch login redirects
      *
-     * This method handles redirects to wp-login.php differently based on
-     * authentication status:
-     *
-     * - Logged-in users: Redirect to custom login URL (preserves logout,
-     *   password change, and other authenticated actions)
-     * - Non-logged-in users: Trigger 404 to prevent login page exposure
-     *   through canonical redirects (e.g., /login, /admin slugs)
-     *
-     * SECURITY FIX (v2.3.1): Previously, canonical redirects from URLs like
-     * /login and /admin would expose the custom login page to non-authenticated
-     * users. Now these attempts result in a 404 error.
+     * This filter only rewrites redirect destinations. Direct access to default
+     * login routes is blocked by block_default_login_access() and
+     * block_login_init_access(), where exiting with a 404 is safe.
      *
      * @since  2.2
-     * @since  2.3.1 Added 404 response for non-authenticated redirect attempts
+     * @since  2.6 Removed 404 side effect from redirect filter
      * @param  string $location The redirect location
      * @param  int    $status   The HTTP status code
      * @return string The filtered redirect location
@@ -615,21 +641,9 @@ class Security_Tools_Feature_Hide_Login {
     public function filter_wp_redirect( $location, $status ) {
         // Check if redirecting to wp-login.php
         if ( strpos( $location, 'wp-login.php' ) !== false ) {
-
-            // For non-logged-in users, trigger 404 instead of exposing login page
-            // This prevents /login, /admin, and other canonical redirects from
-            // revealing the custom login URL
-            if ( ! is_user_logged_in() ) {
-                $this->trigger_404();
-                // Note: trigger_404() calls exit, so this line won't execute
-            }
-
-            // For logged-in users, redirect to custom login URL
-            // This preserves logout, password change, and other authenticated flows
             $parsed = wp_parse_url( $location );
-            $query  = isset( $parsed['query'] ) ? $parsed['query'] : '';
+            $query  = is_array( $parsed ) && isset( $parsed['query'] ) ? $parsed['query'] : '';
 
-            // Build new location with custom slug
             $new_location = home_url( $this->custom_slug );
 
             if ( ! empty( $query ) ) {

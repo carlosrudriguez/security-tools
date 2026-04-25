@@ -75,6 +75,18 @@ define( 'SECURITY_TOOLS_URL', plugin_dir_url( __FILE__ ) );
 // Plugin basename (for hooks that need it)
 define( 'SECURITY_TOOLS_BASENAME', plugin_basename( __FILE__ ) );
 
+if ( ! function_exists( 'security_tools_load_textdomain' ) ) {
+    /**
+     * Load plugin translations.
+     *
+     * @since 2.6
+     * @return void
+     */
+    function security_tools_load_textdomain() {
+        load_muplugin_textdomain( 'security-tools', dirname( SECURITY_TOOLS_BASENAME ) . '/languages' );
+    }
+}
+
 /**
  * =============================================================================
  * LOAD CORE FILES
@@ -199,6 +211,9 @@ function security_tools_init() {
         Security_Tools_Admin::get_instance();
     }
 }
+
+// Load translations before plugin classes render strings.
+add_action( 'plugins_loaded', 'security_tools_load_textdomain', 0 );
 
 // Hook initialization to plugins_loaded for proper timing
 add_action( 'plugins_loaded', 'security_tools_init' );

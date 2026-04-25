@@ -51,11 +51,15 @@ class Security_Tools_Feature_Self_Hiding {
             return;
         }
 
-        // List of plugin files to hide
-        $hidden_plugins = array( 'security-tools.php' );
+        // List of plugin files/loaders to hide.
+        $hidden_plugins = array(
+            'security-tools.php',
+            'security-tools/security-tools.php',
+            'security-tools-loader.php',
+        );
 
         foreach ( $wp_list_table->items as $key => $val ) {
-            if ( in_array( $key, $hidden_plugins, true ) ) {
+            if ( in_array( $key, $hidden_plugins, true ) || false !== strpos( $key, 'security-tools-loader.php' ) ) {
                 unset( $wp_list_table->items[ $key ] );
             }
         }

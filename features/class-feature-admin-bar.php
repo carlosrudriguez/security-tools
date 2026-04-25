@@ -173,8 +173,14 @@ class Security_Tools_Feature_Admin_Bar {
 
         $css = '';
         foreach ( $hidden as $item_id ) {
-            $css .= '#wpadminbar #wp-admin-bar-' . esc_attr( $item_id ) . ',';
-            $css .= '#wpadminbar #' . esc_attr( $item_id ) . ' { display: none !important; }';
+            $safe_id = Security_Tools_Utils::esc_css_identifier( $item_id );
+
+            if ( '' === $safe_id ) {
+                continue;
+            }
+
+            $css .= '#wpadminbar #wp-admin-bar-' . $safe_id . ',';
+            $css .= '#wpadminbar #' . $safe_id . ' { display: none !important; }';
         }
 
         wp_register_style( 'security-tools-hide-admin-bar-items', false );
@@ -220,9 +226,14 @@ class Security_Tools_Feature_Admin_Bar {
 
         $css = '';
         foreach ( $hidden_css as $css_id ) {
-            // Generate CSS rule for hiding by ID
-            // Target the element directly within the admin bar
-            $css .= '#wpadminbar li#' . esc_attr( $css_id ) . ' { display: none !important; } ';
+            $safe_id = Security_Tools_Utils::esc_css_identifier( $css_id );
+
+            if ( '' === $safe_id ) {
+                continue;
+            }
+
+            $css .= '#wpadminbar #' . $safe_id . ',';
+            $css .= '#wpadminbar li#' . $safe_id . ' { display: none !important; } ';
         }
 
         // Use a separate handle to avoid conflicts with the main hiding CSS
@@ -336,6 +347,8 @@ class Security_Tools_Feature_Admin_Bar {
 
         global $wp_admin_bar;
 
+        $original_admin_bar = $wp_admin_bar;
+
         // Set flag to prevent item removal during data collection
         $this->is_collecting = true;
 
@@ -376,6 +389,9 @@ class Security_Tools_Feature_Admin_Bar {
 
         // Reset flag after data collection
         $this->is_collecting = false;
+
+        // Restore the real admin bar so settings discovery does not mutate global state.
+        $wp_admin_bar = $original_admin_bar;
 
         // Cache the items
         $this->cached_items = $items;

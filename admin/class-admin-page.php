@@ -1118,8 +1118,6 @@ class Security_Tools_Admin_Page {
         $loader           = Security_Tools_Loader::get_instance();
         $feature          = $loader->get_feature( 'hide_metaboxes' );
         $discovered_count = $feature ? $feature->get_discovered_count() : 0;
-        $post_types       = $feature ? $feature->get_scannable_post_types() : array();
-        $scan_nonce       = wp_create_nonce( 'security_tools_manual_scan' );
         ?>
         <div class="security-tools-section-header">
             <h2><?php esc_html_e( 'Metabox Discovery', 'security-tools' ); ?></h2>
@@ -1171,22 +1169,6 @@ class Security_Tools_Admin_Page {
                 <div id="security-tools-scan-frame-container" style="display: none;">
                     <iframe id="security-tools-scan-frame" name="security-tools-scan-frame" style="width: 1px; height: 1px; position: absolute; left: -9999px;"></iframe>
                 </div>
-
-                <!-- Pass data to JavaScript -->
-                <script type="text/javascript">
-                    var securityToolsScan = {
-                        nonce: <?php echo wp_json_encode( $scan_nonce ); ?>,
-                        ajaxurl: <?php echo wp_json_encode( admin_url( 'admin-ajax.php' ) ); ?>,
-                        postTypes: <?php echo wp_json_encode( $post_types ); ?>,
-                        strings: {
-                            scanning: <?php echo wp_json_encode( __( 'Scanning...', 'security-tools' ) ); ?>,
-                            complete: <?php echo wp_json_encode( __( 'Scan complete!', 'security-tools' ) ); ?>,
-                            error: <?php echo wp_json_encode( __( 'Scan error. Please try again.', 'security-tools' ) ); ?>,
-                            discovered: <?php echo wp_json_encode( __( 'Discovered %d metaboxes.', 'security-tools' ) ); ?>,
-                            reloading: <?php echo wp_json_encode( __( 'Reloading page...', 'security-tools' ) ); ?>
-                        }
-                    };
-                </script>
             </div>
         </div>
         <?php

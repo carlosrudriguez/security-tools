@@ -66,7 +66,7 @@ class Security_Tools_Feature_Hide_Metaboxes {
         // Skip hiding during manual scan mode
         // This allows the discovery script to capture ALL metaboxes including hidden ones
         // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-        if ( isset( $_GET['security_tools_scan'] ) && '1' === $_GET['security_tools_scan'] ) {
+        if ( isset( $_GET['security_tools_scan'] ) && '1' === sanitize_key( wp_unslash( $_GET['security_tools_scan'] ) ) ) {
             return;
         }
 
@@ -87,7 +87,7 @@ class Security_Tools_Feature_Hide_Metaboxes {
         add_action( 'admin_head', array( $this, 'hide_metaboxes_css' ), 999 );
         
         // JavaScript fallback for Classic Editor (catches late-loading metaboxes)
-        add_action( 'admin_footer', array( $this, 'hide_metaboxes_js' ), 999 );
+        add_action( 'admin_enqueue_scripts', array( $this, 'hide_metaboxes_js' ) );
         
         // Gutenberg panel hiding
         add_action( 'enqueue_block_editor_assets', array( $this, 'hide_gutenberg_panels' ) );
@@ -132,12 +132,18 @@ class Security_Tools_Feature_Hide_Metaboxes {
 
         $css = '';
         foreach ( $hidden as $metabox_id ) {
-            $safe_id = esc_attr( $metabox_id );
+            $safe_id    = Security_Tools_Utils::esc_css_identifier( $metabox_id );
+            $safe_label = Security_Tools_Utils::esc_css_string( $metabox_id . '-hide' );
+
+            if ( '' === $safe_id ) {
+                continue;
+            }
+
             $css .= '#' . $safe_id . ',';
             $css .= '#' . $safe_id . 'div,';
             $css .= '.postbox#' . $safe_id . ',';
             $css .= '#' . $safe_id . '-hide,';
-            $css .= 'label[for="' . $safe_id . '-hide"]';
+            $css .= 'label[for="' . $safe_label . '"]';
             $css .= '{ display: none !important; }';
         }
 
@@ -172,69 +178,21 @@ class Security_Tools_Feature_Hide_Metaboxes {
             return;
         }
 
-        $hidden_json = wp_json_encode( $hidden );
-        ?>
-        <script type="text/javascript">
-        (function() {
-            'use strict';
-            
-            var hiddenMetaboxes = <?php echo $hidden_json; ?>;
-            
-            function hideMetaboxes() {
-                hiddenMetaboxes.forEach(function(id) {
-                    // Hide the metabox itself
-                    var metabox = document.getElementById(id);
-                    if (metabox) {
-                        metabox.style.display = 'none';
-                    }
-                    
-                    // Also try with 'div' suffix (some plugins use this)
-                    var metaboxDiv = document.getElementById(id + 'div');
-                    if (metaboxDiv) {
-                        metaboxDiv.style.display = 'none';
-                    }
-                    
-                    // Hide the Screen Options checkbox for this metabox
-                    var checkbox = document.getElementById(id + '-hide');
-                    if (checkbox) {
-                        checkbox.style.display = 'none';
-                        // Also hide the label
-                        var label = document.querySelector('label[for="' + id + '-hide"]');
-                        if (label) {
-                            label.style.display = 'none';
-                        }
-                    }
-                });
-            }
-            
-            // Run immediately
-            hideMetaboxes();
-            
-            // Run again after short delays to catch late-loading metaboxes
-            setTimeout(hideMetaboxes, 500);
-            setTimeout(hideMetaboxes, 1500);
-            setTimeout(hideMetaboxes, 3000);
-            
-            // Also run when DOM changes (for dynamically added metaboxes)
-            if (typeof MutationObserver !== 'undefined') {
-                var observer = new MutationObserver(function(mutations) {
-                    hideMetaboxes();
-                });
-                
-                // Observe the post body for changes
-                var postBody = document.getElementById('post-body');
-                if (postBody) {
-                    observer.observe(postBody, { childList: true, subtree: true });
-                }
-                
-                // Stop observing after 10 seconds to avoid performance issues
-                setTimeout(function() {
-                    observer.disconnect();
-                }, 10000);
-            }
-        })();
-        </script>
-        <?php
+        wp_enqueue_script(
+            'security-tools-hide-metaboxes-classic',
+            SECURITY_TOOLS_URL . 'assets/js/hide-metaboxes-classic.js',
+            array(),
+            SECURITY_TOOLS_VERSION,
+            true
+        );
+
+        wp_localize_script(
+            'security-tools-hide-metaboxes-classic',
+            'securityToolsHiddenMetaboxes',
+            array(
+                'ids' => array_values( $hidden ),
+            )
+        );
     }
 
     /**
@@ -280,50 +238,22 @@ class Security_Tools_Feature_Hide_Metaboxes {
             $metaboxes_to_css[] = $metabox_id;
         }
 
-        // Build JavaScript to hide panels
-        $panels_json    = wp_json_encode( $panels_to_hide );
-        $metaboxes_json = wp_json_encode( $metaboxes_to_css );
+        wp_enqueue_script(
+            'security-tools-hide-metaboxes-gutenberg',
+            SECURITY_TOOLS_URL . 'assets/js/hide-metaboxes-gutenberg.js',
+            array( 'wp-data', 'wp-dom-ready', 'wp-edit-post' ),
+            SECURITY_TOOLS_VERSION,
+            true
+        );
 
-        $script = "
-            (function() {
-                var panels = {$panels_json};
-                var metaboxes = {$metaboxes_json};
-                
-                function hidePanels() {
-                    if (wp && wp.data && wp.data.dispatch) {
-                        var dispatch = wp.data.dispatch('core/edit-post');
-                        if (dispatch && dispatch.removeEditorPanel) {
-                            panels.forEach(function(p) { 
-                                try { dispatch.removeEditorPanel(p); } catch(e) {}
-                            });
-                        }
-                    }
-                }
-                
-                function hideMetaboxContainers() {
-                    metaboxes.forEach(function(id) {
-                        var el = document.getElementById(id);
-                        if (el) el.style.display = 'none';
-                        // Also try with 'div' suffix (some metaboxes use this)
-                        var elDiv = document.getElementById(id + 'div');
-                        if (elDiv) elDiv.style.display = 'none';
-                    });
-                }
-                
-                if (wp && wp.domReady) { 
-                    wp.domReady(function() {
-                        hidePanels();
-                        hideMetaboxContainers();
-                    });
-                }
-                
-                // Retry after delays for late-loading panels
-                setTimeout(function() { hidePanels(); hideMetaboxContainers(); }, 500);
-                setTimeout(function() { hidePanels(); hideMetaboxContainers(); }, 1500);
-            })();
-        ";
-
-        wp_add_inline_script( 'wp-edit-post', $script );
+        wp_localize_script(
+            'security-tools-hide-metaboxes-gutenberg',
+            'securityToolsGutenbergMetaboxes',
+            array(
+                'panels'    => $panels_to_hide,
+                'metaboxes' => $metaboxes_to_css,
+            )
+        );
     }
 
     /**
@@ -348,7 +278,7 @@ class Security_Tools_Feature_Hide_Metaboxes {
         }
 
         // Only for users who can manage options
-        if ( ! current_user_can( 'manage_options' ) ) {
+        if ( ! Security_Tools_Utils::current_user_can_manage() ) {
             return;
         }
 
@@ -358,11 +288,26 @@ class Security_Tools_Feature_Hide_Metaboxes {
             return;
         }
 
-        // Inline script for discovery (no separate file needed)
-        $script = $this->get_discovery_script( $post_type );
+        $is_scan = isset( $_GET['security_tools_scan'] ) && '1' === sanitize_key( wp_unslash( $_GET['security_tools_scan'] ) );
 
-        // Add after common admin scripts are loaded
-        wp_add_inline_script( 'common', $script );
+        wp_enqueue_script(
+            'security-tools-discover-metaboxes',
+            SECURITY_TOOLS_URL . 'assets/js/discover-metaboxes.js',
+            array(),
+            SECURITY_TOOLS_VERSION,
+            true
+        );
+
+        wp_localize_script(
+            'security-tools-discover-metaboxes',
+            'securityToolsMetaboxDiscovery',
+            array(
+                'ajaxurl'  => admin_url( 'admin-ajax.php' ),
+                'nonce'    => wp_create_nonce( 'security_tools_discover_metaboxes' ),
+                'postType' => $post_type,
+                'scanMode' => $is_scan ? '1' : '0',
+            )
+        );
     }
 
     /**
@@ -400,125 +345,6 @@ class Security_Tools_Feature_Hide_Metaboxes {
     }
 
     /**
-     * Generate the discovery JavaScript
-     *
-     * @since 2.5
-     * @param string $post_type Current post type
-     * @return string JavaScript code
-     */
-    private function get_discovery_script( $post_type ) {
-        $nonce = wp_create_nonce( 'security_tools_discover_metaboxes' );
-
-        return "
-        (function() {
-            'use strict';
-            
-            function discoverMetaboxes() {
-                var metaboxes = [];
-                var postType = " . wp_json_encode( $post_type ) . ";
-                
-                // Find all postbox containers (Classic Editor metaboxes)
-                var postboxes = document.querySelectorAll('.postbox');
-                postboxes.forEach(function(box) {
-                    var id = box.id;
-                    if (!id) return;
-                    
-                    // Get title from h2 or button inside hndle
-                    var title = '';
-                    var handleEl = box.querySelector('.hndle');
-                    if (handleEl) {
-                        // Try to get text content, excluding button text
-                        var titleSpan = handleEl.querySelector('span');
-                        if (titleSpan) {
-                            title = titleSpan.textContent.trim();
-                        } else {
-                            title = handleEl.textContent.trim();
-                        }
-                    }
-                    
-                    // Determine context from parent container
-                    var context = 'normal';
-                    var parent = box.parentElement;
-                    if (parent) {
-                        if (parent.id === 'side-sortables' || parent.id.indexOf('side') !== -1) {
-                            context = 'side';
-                        } else if (parent.id === 'advanced-sortables' || parent.id.indexOf('advanced') !== -1) {
-                            context = 'advanced';
-                        }
-                    }
-                    
-                    if (id && title) {
-                        metaboxes.push({
-                            id: id,
-                            title: title,
-                            context: context,
-                            post_type: postType
-                        });
-                    }
-                });
-                
-                // Also check for Gutenberg plugin panels/sidebars if available
-                if (typeof wp !== 'undefined' && wp.data && wp.data.select) {
-                    try {
-                        var editPost = wp.data.select('core/edit-post');
-                        if (editPost && editPost.getMetaBoxesPerLocation) {
-                            ['normal', 'side', 'advanced'].forEach(function(location) {
-                                var boxes = editPost.getMetaBoxesPerLocation(location);
-                                if (boxes && boxes.length) {
-                                    boxes.forEach(function(box) {
-                                        // Check if we already have this metabox
-                                        var exists = metaboxes.some(function(m) { return m.id === box.id; });
-                                        if (!exists && box.id && box.title) {
-                                            metaboxes.push({
-                                                id: box.id,
-                                                title: box.title,
-                                                context: location,
-                                                post_type: postType
-                                            });
-                                        }
-                                    });
-                                }
-                            });
-                        }
-                    } catch(e) {
-                        // Gutenberg API not available or error
-                    }
-                }
-                
-                // Send to server if we found any metaboxes
-                if (metaboxes.length > 0) {
-                    var xhr = new XMLHttpRequest();
-                    xhr.open('POST', ajaxurl, true);
-                    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-                    xhr.send(
-                        'action=security_tools_discover_metaboxes' +
-                        '&nonce=" . esc_js( $nonce ) . "' +
-                        '&post_type=' + encodeURIComponent(postType) +
-                        '&metaboxes=' + encodeURIComponent(JSON.stringify(metaboxes))
-                    );
-                }
-            }
-            
-            // Run discovery after page load and after a delay (for late-loading metaboxes)
-            if (document.readyState === 'complete') {
-                setTimeout(discoverMetaboxes, 1000);
-            } else {
-                window.addEventListener('load', function() {
-                    setTimeout(discoverMetaboxes, 1000);
-                });
-            }
-            
-            // Also run after Gutenberg is ready if available
-            if (typeof wp !== 'undefined' && wp.domReady) {
-                wp.domReady(function() {
-                    setTimeout(discoverMetaboxes, 2000);
-                });
-            }
-        })();
-        ";
-    }
-
-    /**
      * AJAX handler for automatic metabox discovery
      *
      * Receives discovered metaboxes from post edit screens and merges them
@@ -533,12 +359,14 @@ class Security_Tools_Feature_Hide_Metaboxes {
         }
 
         // Verify capability
-        if ( ! current_user_can( 'manage_options' ) ) {
+        if ( ! Security_Tools_Utils::current_user_can_manage() ) {
             wp_send_json_error( 'Insufficient permissions' );
         }
 
         // Get POST data
-        $post_type = isset( $_POST['post_type'] ) ? sanitize_key( $_POST['post_type'] ) : '';
+        $post_type      = isset( $_POST['post_type'] ) ? sanitize_key( wp_unslash( $_POST['post_type'] ) ) : '';
+        $is_scan        = isset( $_POST['scan_mode'] ) && '1' === sanitize_key( wp_unslash( $_POST['scan_mode'] ) );
+        $option_name    = $is_scan ? Security_Tools_Utils::OPTION_DISCOVERED_METABOXES_SCAN_BUFFER : Security_Tools_Utils::OPTION_DISCOVERED_METABOXES;
         $metaboxes_json = isset( $_POST['metaboxes'] ) ? wp_unslash( $_POST['metaboxes'] ) : '';
 
         if ( empty( $post_type ) || empty( $metaboxes_json ) ) {
@@ -552,7 +380,7 @@ class Security_Tools_Feature_Hide_Metaboxes {
         }
 
         // Get existing discovered metaboxes
-        $discovered = get_option( Security_Tools_Utils::OPTION_DISCOVERED_METABOXES, array() );
+        $discovered = get_option( $option_name, array() );
         if ( ! is_array( $discovered ) ) {
             $discovered = array();
         }
@@ -588,7 +416,7 @@ class Security_Tools_Feature_Hide_Metaboxes {
         }
 
         // Save updated discovered metaboxes
-        update_option( Security_Tools_Utils::OPTION_DISCOVERED_METABOXES, $discovered );
+        update_option( $option_name, $discovered, false );
 
         wp_send_json_success( array( 'count' => count( $discovered ) ) );
     }
@@ -614,11 +442,11 @@ class Security_Tools_Feature_Hide_Metaboxes {
         }
 
         // Verify capability
-        if ( ! current_user_can( 'manage_options' ) ) {
+        if ( ! Security_Tools_Utils::current_user_can_manage() ) {
             wp_send_json_error( 'Insufficient permissions' );
         }
 
-        $post_type = isset( $_POST['post_type'] ) ? sanitize_key( $_POST['post_type'] ) : '';
+        $post_type = isset( $_POST['post_type'] ) ? sanitize_key( wp_unslash( $_POST['post_type'] ) ) : '';
 
         if ( empty( $post_type ) ) {
             wp_send_json_error( 'Missing post type' );
@@ -659,16 +487,15 @@ class Security_Tools_Feature_Hide_Metaboxes {
         }
 
         // Verify capability
-        if ( ! current_user_can( 'manage_options' ) ) {
+        if ( ! Security_Tools_Utils::current_user_can_manage() ) {
             wp_send_json_error( 'Insufficient permissions' );
         }
 
-        $action_type = isset( $_POST['scan_action'] ) ? sanitize_key( $_POST['scan_action'] ) : '';
+        $action_type = isset( $_POST['scan_action'] ) ? sanitize_key( wp_unslash( $_POST['scan_action'] ) ) : '';
 
         if ( 'start' === $action_type ) {
-            // Clear discovered metaboxes to start fresh
-            // This ensures removed plugins/themes have their metaboxes cleaned up
-            update_option( Security_Tools_Utils::OPTION_DISCOVERED_METABOXES, array() );
+            // Use a temporary buffer so an interrupted scan does not erase existing discoveries.
+            update_option( Security_Tools_Utils::OPTION_DISCOVERED_METABOXES_SCAN_BUFFER, array(), false );
 
             // Get all scannable post types
             $post_types = $this->get_scannable_post_types();
@@ -679,11 +506,16 @@ class Security_Tools_Feature_Hide_Metaboxes {
             ) );
 
         } elseif ( 'complete' === $action_type ) {
-            // Scan complete - get final count
-            $discovered = get_option( Security_Tools_Utils::OPTION_DISCOVERED_METABOXES, array() );
+            $discovered = get_option( Security_Tools_Utils::OPTION_DISCOVERED_METABOXES_SCAN_BUFFER, array() );
+            if ( ! is_array( $discovered ) ) {
+                $discovered = array();
+            }
+
+            update_option( Security_Tools_Utils::OPTION_DISCOVERED_METABOXES, $discovered, false );
+            delete_option( Security_Tools_Utils::OPTION_DISCOVERED_METABOXES_SCAN_BUFFER );
 
             wp_send_json_success( array(
-                'count'   => is_array( $discovered ) ? count( $discovered ) : 0,
+                'count'   => count( $discovered ),
                 'message' => 'Scan complete',
             ) );
         }

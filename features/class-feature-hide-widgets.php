@@ -79,8 +79,14 @@ class Security_Tools_Feature_Hide_Widgets {
         // CSS backup for any remaining widgets - now using wp_add_inline_style()
         $css = '';
         foreach ( $hidden as $widget_id ) {
-            $css .= '#' . esc_attr( $widget_id ) . ', ';
-            $css .= '#' . esc_attr( $widget_id ) . '_wrapper { display: none !important; }';
+            $safe_id = Security_Tools_Utils::esc_css_identifier( $widget_id );
+
+            if ( '' === $safe_id ) {
+                continue;
+            }
+
+            $css .= '#' . $safe_id . ', ';
+            $css .= '#' . $safe_id . '_wrapper { display: none !important; }';
         }
 
         wp_register_style( 'security-tools-hide-widgets', false );
@@ -149,6 +155,9 @@ class Security_Tools_Feature_Hide_Widgets {
     public function get_available_widgets() {
         global $wp_meta_boxes;
 
+        $had_dashboard_boxes      = isset( $wp_meta_boxes ) && is_array( $wp_meta_boxes ) && array_key_exists( 'dashboard', $wp_meta_boxes );
+        $original_dashboard_boxes = $had_dashboard_boxes ? $wp_meta_boxes['dashboard'] : null;
+
         // Force dashboard setup to load widgets
         $this->force_dashboard_setup();
 
@@ -171,10 +180,12 @@ class Security_Tools_Feature_Hide_Widgets {
         // Add widgets from wp_meta_boxes
         // v1.3: Added defensive checks for global variable
         if ( ! isset( $wp_meta_boxes ) || ! is_array( $wp_meta_boxes ) ) {
+            $this->restore_dashboard_meta_boxes( $had_dashboard_boxes, $original_dashboard_boxes );
             return $widgets;
         }
 
         if ( ! isset( $wp_meta_boxes['dashboard'] ) || ! is_array( $wp_meta_boxes['dashboard'] ) ) {
+            $this->restore_dashboard_meta_boxes( $had_dashboard_boxes, $original_dashboard_boxes );
             return $widgets;
         }
 
@@ -197,6 +208,8 @@ class Security_Tools_Feature_Hide_Widgets {
             }
         }
 
+        $this->restore_dashboard_meta_boxes( $had_dashboard_boxes, $original_dashboard_boxes );
+
         return $widgets;
     }
 
@@ -206,9 +219,9 @@ class Security_Tools_Feature_Hide_Widgets {
      * @since 1.2
      */
     private function force_dashboard_setup() {
-        global $wp_meta_boxes;
+        global $wp_meta_boxes, $current_screen;
 
-        $current_screen = get_current_screen();
+        $previous_screen = isset( $current_screen ) ? $current_screen : null;
         set_current_screen( 'dashboard' );
 
         if ( ! function_exists( 'wp_dashboard_setup' ) ) {
@@ -217,10 +230,34 @@ class Security_Tools_Feature_Hide_Widgets {
 
         $wp_meta_boxes['dashboard'] = array();
         wp_dashboard_setup();
-        do_action( 'wp_dashboard_setup' );
 
-        if ( $current_screen ) {
-            set_current_screen( $current_screen );
+        if ( $previous_screen ) {
+            set_current_screen( $previous_screen );
+        } else {
+            $current_screen = null;
         }
+    }
+
+    /**
+     * Restore dashboard metabox globals after settings-page discovery.
+     *
+     * @since 2.6
+     * @param bool  $had_dashboard_boxes      Whether dashboard boxes existed before discovery.
+     * @param mixed $original_dashboard_boxes Original dashboard boxes value.
+     * @return void
+     */
+    private function restore_dashboard_meta_boxes( $had_dashboard_boxes, $original_dashboard_boxes ) {
+        global $wp_meta_boxes;
+
+        if ( ! isset( $wp_meta_boxes ) || ! is_array( $wp_meta_boxes ) ) {
+            return;
+        }
+
+        if ( $had_dashboard_boxes ) {
+            $wp_meta_boxes['dashboard'] = $original_dashboard_boxes;
+            return;
+        }
+
+        unset( $wp_meta_boxes['dashboard'] );
     }
 }

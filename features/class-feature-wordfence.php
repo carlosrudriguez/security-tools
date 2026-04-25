@@ -28,7 +28,7 @@ class Security_Tools_Feature_Wordfence {
      */
     public function __construct() {
         add_action( 'admin_enqueue_scripts', array( $this, 'hide_2fa_css' ) );
-        add_action( 'admin_footer-users.php', array( $this, 'hide_2fa_js' ) );
+        add_action( 'admin_enqueue_scripts', array( $this, 'hide_2fa_js' ) );
     }
 
     /**
@@ -38,12 +38,25 @@ class Security_Tools_Feature_Wordfence {
      * @return bool
      */
     private function is_wordfence_active() {
-        $plugin_active = function_exists( 'is_plugin_active' ) &&
-            is_plugin_active( 'wordfence-login-security/wordfence-login-security.php' );
+        $plugins = array(
+            'wordfence/wordfence.php',
+            'wordfence-login-security/wordfence-login-security.php',
+        );
 
-        return $plugin_active ||
-               class_exists( 'wordfence' ) ||
-               defined( 'WORDFENCE_VERSION' );
+        foreach ( $plugins as $plugin ) {
+            if ( function_exists( 'is_plugin_active' ) && is_plugin_active( $plugin ) ) {
+                return true;
+            }
+
+            if ( function_exists( 'is_plugin_active_for_network' ) && is_plugin_active_for_network( $plugin ) ) {
+                return true;
+            }
+        }
+
+        return class_exists( 'wordfence', false ) ||
+               class_exists( 'WordfenceLS\\Controller_Users', false ) ||
+               defined( 'WORDFENCE_VERSION' ) ||
+               defined( 'WORDFENCE_LS_VERSION' );
     }
 
     /**
@@ -82,14 +95,20 @@ class Security_Tools_Feature_Wordfence {
         }
 
         $css = '
+            .subsubsub li.wfls-active,
+            .subsubsub li.wfls-inactive,
             .subsubsub li a[href*="2fa-active"],
             .subsubsub li a[href*="2fa-inactive"],
+            .subsubsub li a[href*="wf2fa=active"],
+            .subsubsub li a[href*="wf2fa=inactive"],
             .subsubsub li a[href*="wf-2fa-active"],
             .subsubsub li a[href*="wf-2fa-inactive"],
             .subsubsub li a[href*="wfls-active"],
             .subsubsub li a[href*="wfls-inactive"],
             .subsubsub li:has(a[href*="2fa-active"]),
             .subsubsub li:has(a[href*="2fa-inactive"]),
+            .subsubsub li:has(a[href*="wf2fa=active"]),
+            .subsubsub li:has(a[href*="wf2fa=inactive"]),
             .subsubsub li:has(a[href*="wf-2fa-active"]),
             .subsubsub li:has(a[href*="wf-2fa-inactive"]),
             .subsubsub li:has(a[href*="wfls-active"]),
@@ -119,23 +138,12 @@ class Security_Tools_Feature_Wordfence {
             return;
         }
 
-        ?>
-        <script type="text/javascript">
-        jQuery(document).ready(function($) {
-            $('.subsubsub li a').each(function() {
-                var href = $(this).attr('href') || '';
-
-                if (href.includes('2fa-active') ||
-                    href.includes('2fa-inactive') ||
-                    href.includes('wf-2fa-active') ||
-                    href.includes('wf-2fa-inactive') ||
-                    href.includes('wfls-active') ||
-                    href.includes('wfls-inactive')) {
-                    $(this).closest('li').hide();
-                }
-            });
-        });
-        </script>
-        <?php
+        wp_enqueue_script(
+            'security-tools-hide-wordfence-2fa',
+            SECURITY_TOOLS_URL . 'assets/js/hide-wordfence-2fa.js',
+            array( 'jquery' ),
+            SECURITY_TOOLS_VERSION,
+            true
+        );
     }
 }

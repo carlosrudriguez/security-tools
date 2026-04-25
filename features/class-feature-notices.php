@@ -31,7 +31,7 @@ class Security_Tools_Feature_Notices {
     public function __construct() {
         add_action( 'current_screen', array( $this, 'hide_notices_php' ) );
         add_action( 'admin_enqueue_scripts', array( $this, 'hide_notices_css' ) );
-        add_action( 'admin_footer', array( $this, 'hide_notices_js' ) );
+        add_action( 'admin_enqueue_scripts', array( $this, 'hide_notices_js' ) );
     }
 
     /**
@@ -132,31 +132,20 @@ class Security_Tools_Feature_Notices {
             return;
         }
 
-        $is_settings_page = Security_Tools_Utils::is_settings_page();
-        ?>
-        <script type="text/javascript">
-        jQuery(document).ready(function($) {
-            function hideNotices() {
-                <?php if ( $is_settings_page ) : ?>
-                    $('.notice, .error, .updated, .update-nag').not('.security-tools-notice').hide();
-                <?php else : ?>
-                    $('.notice, .error, .updated, .update-nag').hide();
-                <?php endif; ?>
-            }
+        wp_enqueue_script(
+            'security-tools-hide-notices',
+            SECURITY_TOOLS_URL . 'assets/js/hide-notices.js',
+            array( 'jquery' ),
+            SECURITY_TOOLS_VERSION,
+            true
+        );
 
-            hideNotices();
-
-            var observer = new MutationObserver(function(mutations) {
-                mutations.forEach(function(mutation) {
-                    if (mutation.type === 'childList') {
-                        hideNotices();
-                    }
-                });
-            });
-
-            observer.observe(document.body, { childList: true, subtree: true });
-        });
-        </script>
-        <?php
+        wp_localize_script(
+            'security-tools-hide-notices',
+            'securityToolsHideNotices',
+            array(
+                'isSettingsPage' => Security_Tools_Utils::is_settings_page(),
+            )
+        );
     }
 }

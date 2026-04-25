@@ -364,14 +364,49 @@
             cssId = cssId.trim();
 
             // Strip leading '#' if present
-            if (cssId.charAt(0) === '#') {
-                cssId = cssId.substring(1);
-            }
+            cssId = cssId.replace(/^#+/, '');
 
             // Remove invalid characters (only allow: a-z, A-Z, 0-9, hyphen, underscore)
             cssId = cssId.replace(/[^a-zA-Z0-9_-]/g, '');
 
+            // Match server-side validation: IDs must start with a letter or underscore.
+            if (!/^[a-zA-Z_][a-zA-Z0-9_-]*$/.test(cssId)) {
+                return '';
+            }
+
             return cssId;
+        }
+
+        /**
+         * Find a token by its raw data value without interpolating into a selector.
+         *
+         * @param {string} value - The token value to find
+         * @return {Element|null} Matching token, or null
+         */
+        function findTokenByValue(value) {
+            var existingTokens = tokenContainer.querySelectorAll('.security-tools-token');
+            for (var i = 0; i < existingTokens.length; i++) {
+                if (existingTokens[i].getAttribute('data-value') === value) {
+                    return existingTokens[i];
+                }
+            }
+            return null;
+        }
+
+        /**
+         * Find a hidden input by its raw token value without selector interpolation.
+         *
+         * @param {string} value - The token value to find
+         * @return {Element|null} Matching hidden input, or null
+         */
+        function findHiddenInputByValue(value) {
+            var existingInputs = hiddenInputsContainer.querySelectorAll('input[data-token-value]');
+            for (var i = 0; i < existingInputs.length; i++) {
+                if (existingInputs[i].getAttribute('data-token-value') === value) {
+                    return existingInputs[i];
+                }
+            }
+            return null;
         }
 
         /**
@@ -381,13 +416,7 @@
          * @return {boolean} True if token exists
          */
         function tokenExists(value) {
-            var existingTokens = tokenContainer.querySelectorAll('.security-tools-token');
-            for (var i = 0; i < existingTokens.length; i++) {
-                if (existingTokens[i].getAttribute('data-value') === value) {
-                    return true;
-                }
-            }
-            return false;
+            return findTokenByValue(value) !== null;
         }
 
         /**
@@ -407,7 +436,7 @@
             // Check for duplicates
             if (tokenExists(value)) {
                 // Highlight existing token briefly
-                var existingToken = tokenContainer.querySelector('[data-value="' + value + '"]');
+                var existingToken = findTokenByValue(value);
                 if (existingToken) {
                     existingToken.style.borderColor = '#dc3232';
                     setTimeout(function() {
@@ -452,13 +481,13 @@
          */
         function removeToken(value) {
             // Remove token element
-            var token = tokenContainer.querySelector('[data-value="' + value + '"]');
+            var token = findTokenByValue(value);
             if (token) {
                 token.remove();
             }
 
             // Remove hidden input
-            var hiddenInput = hiddenInputsContainer.querySelector('[data-token-value="' + value + '"]');
+            var hiddenInput = findHiddenInputByValue(value);
             if (hiddenInput) {
                 hiddenInput.remove();
             }
@@ -538,6 +567,7 @@
         var currentIndex = 0;
         var postTypes = [];
         var totalTypes = 0;
+        var defaultScanButtonHtml = scanButton.innerHTML;
 
         /**
          * Start the scanning process
@@ -744,8 +774,7 @@
         function scanError() {
             isScanning = false;
             scanButton.disabled = false;
-            scanButton.innerHTML = '<span class="dashicons dashicons-search" style="margin-top: 3px;"></span> ' +
-                                   securityToolsScan.strings.scanning.replace('...', '');
+            scanButton.innerHTML = defaultScanButtonHtml;
             
             if (scanStatus) {
                 scanStatus.textContent = securityToolsScan.strings.error;

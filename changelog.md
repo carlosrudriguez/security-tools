@@ -21,12 +21,9 @@ Version 2.6 focuses on hardening and regression fixes across metaboxes, Wordfenc
     - `security-tools.php`
     - `includes/class-loader.php`
 
-- **Regression test suite for reported and audit issues**
-  - New tests:
-    - `tests/reported_issues_regression.php`
-    - `tests/remaining_audit_regression.php`
-    - `tests/theme_controls_scope_regression.php`
-    - `tests/no_security_tools_in_messages.php`
+- **Expanded release verification coverage**
+  - Added session-level regression checks for reported and audit issues during the 2.6 hardening pass.
+  - Covered action scoping, Hide Login behavior, Wordfence Users tabs, metabox scan buffering, option clearing, and policy-message cleanup.
 
 - **One-time comments closure marker**
   - New option constant: `Security_Tools_Utils::OPTION_COMMENTS_CLOSED_ONCE`
@@ -45,9 +42,21 @@ Version 2.6 focuses on hardening and regression fixes across metaboxes, Wordfenc
   - Ensures Settings API receives explicit empty arrays when users uncheck all values.
 
 - **Wordfence Users tabs compatibility**
-  - Added handling for `wfls-active` / `wfls-inactive` in CSS and JS fallbacks.
+  - Added handling for current Wordfence Users view links using `wf2fa=active` / `wf2fa=inactive`.
+  - Added handling for `wfls-active` / `wfls-inactive` list item classes in CSS and JS fallbacks.
   - JS matching is now URL-marker based (no locale-dependent text matching).
+  - Supports the full Wordfence plugin and standalone Wordfence Login Security, including network-active installs.
   - Supports Users screens in both site admin and network admin contexts.
+
+- **Hide Login custom URL warnings**
+  - Custom login slug requests now prepare the WordPress login globals expected by `wp-login.php`.
+  - Prevents undefined-variable notices such as `$user_login` and `$error` when rendering the custom login URL.
+  - Preserves normal login, logout, password reset, registration, and redirect handling through the custom slug.
+
+- **Hide Login blocked-route 404 safety**
+  - Default login routes such as `/login`, `/wp-login.php`, and unauthenticated `/wp-admin/` now return a safe 404 response without directly including the active theme's 404 template.
+  - Avoids theme fatal errors caused by loading theme templates from early login-blocking hooks.
+  - Keeps the intended behavior: default WordPress login routes stay hidden from non-authenticated users.
 
 - **Disable Email Verification now works at runtime**
   - Implemented real runtime enforcement instead of settings-only behavior.
@@ -101,7 +110,11 @@ Version 2.6 focuses on hardening and regression fixes across metaboxes, Wordfenc
 
 ### Verification Notes
 
-- Full PHP lint and session regression tests pass for all fixes above.
+- Full PHP lint, JavaScript syntax checks, and session regression checks pass for the fixes above.
+- Verified Hide Login locally:
+  - Custom login URL returns the login form without undefined-variable notices.
+  - `/login`, `/wp-admin/`, and `/wp-login.php` return 404 without theme fatal output.
+- Verified Wordfence Users tab hiding against current Wordfence `wf2fa` view URLs and `wfls-*` list item classes.
 
 ## [2.5] - 2024
 
@@ -759,7 +772,7 @@ The feature filters these WordPress functions:
 - Logged-in users can access wp-admin normally
 - AJAX, REST API, and cron endpoints remain functional
 - Password reset and registration flows work through custom URL
-- 404 responses use theme's 404 template for consistency
+- 404 responses are returned safely without directly loading theme templates from early login-blocking hooks
 
 ### Recovery Options
 
