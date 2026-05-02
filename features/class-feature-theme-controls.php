@@ -140,7 +140,7 @@ class Security_Tools_Feature_Theme_Controls {
                 .theme-actions, .theme .theme-actions,
                 .theme-overlay .theme-actions,
                 .activate, .delete-theme, .load-customize, .preview,
-                .theme-update, .update-message { display: none !important; }
+                .theme-overlay .theme-actions .delete-theme { display: none !important; }
                 .theme:not(.active) .theme-screenshot { pointer-events: none !important; }
             ';
         }
@@ -211,8 +211,6 @@ class Security_Tools_Feature_Theme_Controls {
         $blocked_single_actions = array(
             'activate',
             'delete',
-            'update-theme',
-            'upgrade-theme',
             'install-theme',
             'upload-theme',
         );
@@ -222,7 +220,6 @@ class Security_Tools_Feature_Theme_Controls {
         }
 
         $blocked_bulk_actions = array(
-            'update-selected-themes',
             'delete-selected-themes',
         );
 
@@ -268,7 +265,6 @@ class Security_Tools_Feature_Theme_Controls {
             'edit_themes',
             'install_themes',
             'upload_themes',
-            'update_themes',
         );
 
         foreach ( $blocked_caps as $cap ) {

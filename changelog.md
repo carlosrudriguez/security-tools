@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [2.6.1] - 2026-05-02
+
+### Summary
+
+Version 2.6.1 is a focused bugfix release for two regressions found after the 2.6 hardening release.
+
+### Fixed
+
+- **Admin email verification prompt suppression**
+  - Blocks the direct `wp-login.php?action=confirm_admin_email` screen when Disable Email Verification is enabled.
+  - Keeps the existing interval filters that prevent WordPress from scheduling new admin email confirmation redirects.
+
+- **WordPress update visibility with management controls**
+  - Plugin Management no longer removes the `update_plugins` capability or hides plugin update rows/messages.
+  - Theme Management no longer removes the `update_themes` capability or hides theme update messages.
+  - Keeps install, activation, deletion, editing, customization, and upload restrictions intact.
+  - Leaves the WordPress Updates setting as the single control that suppresses update checks and update visibility.
+
+---
+
 ## [2.6] - 2026-04-24
 
 ### Summary

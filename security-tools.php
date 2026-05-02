@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Security Tools
  * Description: Advanced security management tools for WordPress.
- * Version: 2.6
+ * Version: 2.6.1
  * Author: Carlos Rodríguez
  * Author URI: https://carlosrodriguez.mx/
  * License:           GPL-3.0-or-later

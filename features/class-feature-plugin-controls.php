@@ -120,9 +120,7 @@ class Security_Tools_Feature_Plugin_Controls {
                 /* Hide management UI elements - previously in hide_management_ui() */
                 .plugin-action-buttons,
                 .row-actions .activate, .row-actions .deactivate, .row-actions .delete,
-                .row-actions .update-now, .row-actions .enable-auto-update, .row-actions .disable-auto-update,
                 .bulkactions, #bulk-action-selector-top, #bulk-action-selector-bottom,
-                .plugin-update-tr, .update-message, .plugin-autoupdate,
                 .check-column input[type="checkbox"],
                 #doaction, #doaction2, #cb-select-all-1, #cb-select-all-2,
                 .column-auto-updates { display: none !important; }
@@ -170,8 +168,6 @@ class Security_Tools_Feature_Plugin_Controls {
             'activate',
             'deactivate',
             'delete',
-            'update-plugin',
-            'upgrade-plugin',
             'install-plugin',
             'upload-plugin',
         );
@@ -182,7 +178,7 @@ class Security_Tools_Feature_Plugin_Controls {
 
         $blocked_bulk_actions = array(
             'activate-selected', 'deactivate-selected', 'delete-selected',
-            'update-selected', 'enable-auto-update-selected', 'disable-auto-update-selected'
+            'enable-auto-update-selected', 'disable-auto-update-selected'
         );
 
         if ( in_array( $action, $blocked_bulk_actions, true ) || in_array( $action2, $blocked_bulk_actions, true ) ) {
@@ -225,7 +221,6 @@ class Security_Tools_Feature_Plugin_Controls {
             'edit_plugins',
             'install_plugins',
             'upload_plugins',
-            'update_plugins',
         );
 
         foreach ( $blocked_caps as $cap ) {
