@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [2.6.2] - 2026-05-31
+
+### Summary
+
+Version 2.6.2 is a focused Email Verification fix for sites using Security Tools' custom Hide Login slug.
+
+### Fixed
+
+- **Email Verification with custom login URLs**
+  - Registers Email Verification suppression hooks as soon as the feature loads, before Hide Login can include `wp-login.php` from the custom slug.
+  - Adds an early `login_init` route guard for `action=confirm_admin_email` requests, including custom login URLs such as `/acceder?action=confirm_admin_email`.
+  - Safely redirects the confirmation route to the requested dashboard URL when valid, or to `wp-admin/` as a fallback.
+  - Short-circuits `admin_email_lifespan` to a future timestamp while Disable Email Verification is enabled, preventing expired reminder state from triggering the prompt.
+
+---
+
 ## [2.6.1] - 2026-05-02
 
 ### Summary

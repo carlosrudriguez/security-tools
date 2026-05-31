@@ -24,7 +24,7 @@ class Security_Tools_Feature_Email_Verification {
      * @since 2.5
      */
     public function __construct() {
-        add_action( 'init', array( $this, 'maybe_disable_email_verification' ) );
+        $this->maybe_disable_email_verification();
     }
 
     /**
@@ -40,28 +40,67 @@ class Security_Tools_Feature_Email_Verification {
 
         add_filter( 'admin_email_check_interval', array( $this, 'force_zero_interval' ), PHP_INT_MAX );
         add_filter( 'admin_email_remind_interval', array( $this, 'force_zero_interval' ), PHP_INT_MAX );
+        add_filter( 'pre_option_admin_email_lifespan', array( $this, 'force_future_lifespan' ), PHP_INT_MAX );
+        add_action( 'login_init', array( $this, 'redirect_admin_email_confirmation' ), 0 );
         add_action( 'login_form_confirm_admin_email', array( $this, 'redirect_admin_email_confirmation' ), 0 );
     }
 
     /**
-     * Redirect logged-in administrators away from the confirmation screen.
+     * Redirect confirmation-screen requests away from the login form.
      *
      * @since  2.6.1
      * @return void
      */
     public function redirect_admin_email_confirmation() {
-        if ( ! is_user_logged_in() || ! current_user_can( 'manage_options' ) ) {
+        if ( ! $this->is_admin_email_confirmation_request() ) {
             return;
         }
 
-        $redirect_to = admin_url();
+        wp_safe_redirect( $this->get_confirmation_redirect_url() );
+        exit;
+    }
 
-        if ( ! empty( $_REQUEST['redirect_to'] ) ) {
-            $redirect_to = esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) );
+    /**
+     * Determine whether the current login request is the admin email screen.
+     *
+     * @since  2.6.2
+     * @return bool
+     */
+    private function is_admin_email_confirmation_request() {
+        if ( empty( $_REQUEST['action'] ) || ! is_string( $_REQUEST['action'] ) ) {
+            return false;
         }
 
-        wp_safe_redirect( $redirect_to );
-        exit;
+        return 'confirm_admin_email' === sanitize_key( wp_unslash( $_REQUEST['action'] ) );
+    }
+
+    /**
+     * Resolve the post-confirmation destination.
+     *
+     * @since  2.6.2
+     * @return string
+     */
+    private function get_confirmation_redirect_url() {
+        $redirect_to = admin_url();
+
+        if ( empty( $_REQUEST['redirect_to'] ) || ! is_string( $_REQUEST['redirect_to'] ) ) {
+            return $redirect_to;
+        }
+
+        $requested_redirect = esc_url_raw( wp_unslash( $_REQUEST['redirect_to'] ) );
+
+        return wp_validate_redirect( $requested_redirect, $redirect_to );
+    }
+
+    /**
+     * Keep WordPress from seeing an expired admin email reminder window.
+     *
+     * @since  2.6.2
+     * @param  mixed $pre_option Existing short-circuit value.
+     * @return int
+     */
+    public function force_future_lifespan( $pre_option ) {
+        return time() + YEAR_IN_SECONDS;
     }
 
     /**
