@@ -69,6 +69,10 @@
 
     /* Shape */
     --st-border-radius: 4px;
+    --st-switch-width: 50px;
+    --st-switch-height: 24px;
+    --st-switch-mid-offset: 13px;
+    --st-table-toggle-column-width: 125px;
 
     /* Font Sizes */
     --st-font-large: 28px;
@@ -320,8 +324,8 @@ p.security-tools-author {
 
 .control-slider {
     position: relative;
-    width: 50px;
-    height: 24px;
+    width: var(--st-switch-width);
+    height: var(--st-switch-height);
     background: var(--st-border-default);
     border-radius: 24px;
     transition: background 0.3s ease;
@@ -347,6 +351,35 @@ p.security-tools-author {
 
 .control-switch input:checked + .control-slider:before {
     transform: translateX(26px);
+}
+
+.security-tools-row-switch {
+    position: relative;
+    margin-bottom: 0;
+}
+
+.security-tools-row-switch input[type="checkbox"] {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: var(--st-switch-width);
+    height: var(--st-switch-height);
+    margin: 0;
+    opacity: 0;
+}
+
+.security-tools-row-switch input:focus-visible + .control-slider {
+    outline: 2px solid var(--st-primary);
+    outline-offset: 2px;
+}
+
+.security-tools-row-switch .select-all-checkbox:indeterminate + .control-slider {
+    background: var(--st-border-input);
+}
+
+.security-tools-row-switch .select-all-checkbox:indeterminate + .control-slider:before {
+    transform: translateX(var(--st-switch-mid-offset));
 }
 
 .control-label {
@@ -434,6 +467,10 @@ p.security-tools-author {
     box-shadow: none;
 }
 
+.security-tools-enhanced-table .security-tools-toggle-column {
+    width: var(--st-table-toggle-column-width);
+}
+
 .security-tools-enhanced-table thead th {
     background: var(--st-bg-lighter);
     border-bottom: 2px solid var(--st-border-lighter);
@@ -497,65 +534,6 @@ p.security-tools-author {
 
 .sortable-header.sorted .sort-indicator {
     opacity: 1;
-}
-
-/* =============================================================================
- * CUSTOM CHECKBOXES
- * =============================================================================
- */
-
-.security-tools-checkbox {
-    position: relative;
-    display: inline-block;
-    width: 18px;
-    height: 18px;
-}
-
-.security-tools-checkbox input[type="checkbox"] {
-    position: absolute;
-    opacity: 0;
-    cursor: pointer;
-    width: 18px;
-    height: 18px;
-    margin: 0;
-}
-
-.security-tools-checkbox-custom {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 18px;
-    width: 18px;
-    background-color: var(--st-bg-page);
-    border: 2px solid var(--st-border-input);
-    border-radius: 3px;
-    transition: all 0.2s ease;
-}
-
-.security-tools-checkbox input[type="checkbox"]:checked ~ .security-tools-checkbox-custom {
-    background-color: var(--st-primary);
-    border-color: var(--st-primary);
-}
-
-.security-tools-checkbox-custom:after {
-    content: "";
-    position: absolute;
-    display: none;
-    left: 4px;
-    top: 1px;
-    width: 6px;
-    height: 10px;
-    border: solid var(--st-bg-page);
-    border-width: 0 2px 2px 0;
-    transform: rotate(45deg);
-}
-
-.security-tools-checkbox input[type="checkbox"]:checked ~ .security-tools-checkbox-custom:after {
-    display: block;
-}
-
-.security-tools-checkbox:hover .security-tools-checkbox-custom {
-    border-color: var(--st-primary);
 }
 
 /* =============================================================================
@@ -811,11 +789,6 @@ p.security-tools-author {
     outline: none;
 }
 
-.security-tools-tokenfield-input-row .button {
-    height: auto;
-    padding: 8px 16px;
-}
-
 /* Hidden inputs container (not visible) */
 #admin-bar-css-hidden-inputs {
     display: none;
@@ -842,10 +815,11 @@ p.security-tools-author {
     height: auto;
 }
 
-.security-tools-scan-controls .button .dashicons {
+.security-tools-scan-controls #security-tools-scan-metaboxes .dashicons {
     font-size: 16px;
     width: 16px;
     height: 16px;
+    line-height: 1;
 }
 
 /* Scan Status Text */

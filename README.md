@@ -25,22 +25,17 @@
 
 ## 🚀 Quick Start (MU Plugin)
 
-1. Copy the `security-tools` folder to `wp-content/mu-plugins/`.
-2. Create `wp-content/mu-plugins/security-tools-loader.php` with:
+1. Download and extract the [v2.6.4 installation ZIP](https://github.com/carlosrudriguez/security-tools/releases/download/v2.6.4/security-tools-2.6.4.zip).
+2. Using your host's file manager or SFTP, copy both `security-tools-loader.php` and the **unversioned** `security-tools` folder into `wp-content/mu-plugins/`. They must sit beside each other:
 
-```php
-<?php
-/**
- * Plugin Name: Security Tools Loader
- * Description: Loads the Security Tools MU plugin.
- */
+   ```text
+   wp-content/mu-plugins/
+   ├── security-tools-loader.php
+   └── security-tools/
+       └── security-tools.php
+   ```
 
-if ( file_exists( __DIR__ . '/security-tools/security-tools.php' ) ) {
-    require_once __DIR__ . '/security-tools/security-tools.php';
-}
-```
-
-3. Open **Security Tools** in the WordPress admin sidebar.
+3. Open **Security Tools** in the WordPress admin sidebar. MU plugins load automatically; the standard plugin uploader does not install this package.
 
 ---
 
@@ -55,16 +50,22 @@ if ( file_exists( __DIR__ . '/security-tools/security-tools.php' ) ) {
 - **Disable Frontend Admin Bar**
 - **Hide Admin Notices**
 
+### Administrator Access
+- The first administrator to open Security Tools when no access list exists receives access.
+- In **General**, authorized administrators can enable or disable access for each current administrator. Newly created administrators remain disabled until enabled manually.
+- At least one administrator must retain access. A disabled administrator cannot save Security Tools settings from an old open form.
+
 ### Login Hardening
 - **Hide Login Page** with a custom slug
 - Default login routes return **404** for non‑logged users
 
 ### Admin UI Hiding
-- **Admins:** hide selected administrator accounts from the Users list
+- **Admins:** hide selected administrator accounts from the Users list; this is separate from Security Tools access
 - **Plugins / Themes:** hide items without disabling them
 - **Widgets:** hide dashboard widgets
 - **Admin Bar:** hide items by ID or **CSS ID**
 - **Metaboxes:** hide post/page editor panels (Classic + Gutenberg)
+- The six Hide tables use individual **Hide** toggles and an **All** toggle for the visible list. Existing selections remain in place when upgrading.
 
 ### Branding
 - **Custom Login Logo** (supports SVG)
@@ -78,6 +79,12 @@ if ( file_exists( __DIR__ . '/security-tools/security-tools.php' ) ) {
 - **Self‑hiding:** removes itself from the plugins list and MU tab.
 - **Non‑destructive:** all features are reversible with toggles.
 - **Designed for admins:** UI is clear, fast, and split into focused sections.
+
+---
+
+## Compatibility
+
+Version 2.6.4 uses WordPress's current `core/editor` panel API for block editor metabox hiding. The plugin was checked locally with WordPress 7.1.2; browser verification of editor screens remains site-specific.
 
 ---
 

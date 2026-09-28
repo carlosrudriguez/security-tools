@@ -113,6 +113,12 @@ class Security_Tools_Admin_Notices {
 
         // Get current page slug to determine the specific message
         $current_page = Security_Tools_Utils::get_current_page_slug();
+
+        if ( Security_Tools_Utils::PAGE_GENERAL === $current_page && get_settings_errors( Security_Tools_Utils::OPTION_AUTHORIZED_ADMINS ) ) {
+            settings_errors( Security_Tools_Utils::OPTION_AUTHORIZED_ADMINS );
+            return true;
+        }
+
         $page_title   = Security_Tools_Utils::get_page_title( $current_page );
 
         // Build the specific notice message

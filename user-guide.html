@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Security Tools v2.5 - Documentation</title>
+    <title>Security Tools v2.6.4 - Documentation</title>
     <style>
         /* 
          * Security Tools - Documentation Styles
@@ -310,7 +310,7 @@
         <nav class="sidebar">
             <div class="sidebar-header">
                 <h2 class="sidebar-title">Security Tools</h2>
-                <div class="sidebar-meta">Version 2.5 | By Carlos Rodríguez</div>
+                <div class="sidebar-meta">Version 2.6.4 | By Carlos Rodríguez</div>
             </div>
             <div id="toc">
                 <a href="#overview" class="nav-link">Overview</a>
@@ -338,7 +338,7 @@
 
                 <header class="hero" id="top">
                     <h1 style="border:none; margin-bottom: 10px;">Security Tools <span
-                            style="font-weight:normal; font-size: 0.6em; color:#646970;">v2.5</span></h1>
+                            style="font-weight:normal; font-size: 0.6em; color:#646970;">v2.6.4</span></h1>
                     <p class="hero-subtitle">A Must-Use WordPress Plugin for Security Management and Administrative
                         Control</p>
                 </header>
@@ -375,25 +375,17 @@
                 <section id="installation">
                     <h2>Installation</h2>
 
-                    <h3>As Must-Use Plugin (Recommended)</h3>
+                    <h3>As a Must-Use Plugin</h3>
                     <ol>
-                        <li>Copy the entire <code>security-tools</code> folder to <code>wp-content/mu-plugins/</code>.
-                        </li>
-                        <li>Create a new file named <code>security-tools-loader.php</code> inside
-                            <code>wp-content/mu-plugins/</code> with the following content:
-                            <pre>&lt;?php
-/**
- * Plugin Name: Security Tools Loader
- * Description: Loads the Security Tools MU plugin.
- */
-
-if ( file_exists( __DIR__ . '/security-tools/security-tools.php' ) ) {
-    require_once __DIR__ . '/security-tools/security-tools.php';
-}</pre>
-                        </li>
+                        <li>Download and extract the <a href="https://github.com/carlosrudriguez/security-tools/releases/download/v2.6.4/security-tools-2.6.4.zip">v2.6.4 installation ZIP</a>.
+                            Choose this installation ZIP rather than GitHub's automatic source archives.</li>
+                        <li>Using your host's file manager or SFTP, copy both <code>security-tools-loader.php</code>
+                            and the <code>security-tools</code> folder into <code>wp-content/mu-plugins/</code>.
+                            Keep the folder name exactly <code>security-tools</code>.</li>
                         <li>The plugin activates automatically.</li>
                         <li>Access via <strong>Security Tools</strong> in the WordPress admin sidebar.</li>
                     </ol>
+                    <p>The standard WordPress plugin uploader does not install Must-Use plugins.</p>
 
                     <h3>File Structure</h3>
                     <pre>wp-content/
@@ -414,7 +406,7 @@ if ( file_exists( __DIR__ . '/security-tools/security-tools.php' ) ) {
                         <h3 style="margin-top:0">Get Up and Running in 5 Minutes</h3>
                         <ol style="margin-bottom:0">
                             <li>Open <strong>Security Tools</strong> in the WordPress admin menu.</li>
-                            <li>Review <strong>General</strong> and decide whether to enable <strong>Autohide Menu</strong>.</li>
+                            <li>Review <strong>General</strong>, including administrator access and <strong>Autohide Menu</strong>.</li>
                             <li>Visit <strong>System Controls</strong> and enable only the options you need.</li>
                             <li>Use the <strong>Branding</strong> page if you want a custom login logo or message.</li>
                             <li>Save settings on each page. Changes take effect immediately.</li>
@@ -438,9 +430,11 @@ if ( file_exists( __DIR__ . '/security-tools/security-tools.php' ) ) {
                             not affect other pages. If you leave a page without saving, changes on that page are lost.</p>
                     </div>
                     <div class="card">
-                        <h3 style="margin-top:0">Tables and Checkboxes</h3>
+                        <h3 style="margin-top:0">Hide Toggles</h3>
                         <p>Pages like Admins, Plugins, Themes, Widgets, Admin Bar, and Metaboxes use tables with
-                            checkboxes. Use the checkbox in the header to select or clear all items.</p>
+                            individual <strong>Hide</strong> toggles. Use the <strong>All</strong> toggle in the header
+                            to turn hiding on or off for every row, then save the page. Existing saved selections
+                            remain in place after upgrading.</p>
                     </div>
                 </section>
 
@@ -459,6 +453,10 @@ if ( file_exists( __DIR__ . '/security-tools/security-tools.php' ) ) {
                             <tr>
                                 <td>Autohide Menu</td>
                                 <td>Hide the Security Tools menu from the sidebar (access via URL or tabs).</td>
+                            </tr>
+                            <tr>
+                                <td>Administrator Access</td>
+                                <td>Choose which administrators may open and manage Security Tools.</td>
                             </tr>
                             <tr>
                                 <td>Reset All Settings</td>
@@ -547,7 +545,7 @@ if ( file_exists( __DIR__ . '/security-tools/security-tools.php' ) ) {
                         <tbody>
                             <tr>
                                 <td>Admins</td>
-                                <td>Hide administrator accounts from Users list (they retain full access).</td>
+                                <td>Hide administrator accounts from the Users list without changing their WordPress permissions. Security Tools access is managed in General.</td>
                             </tr>
                             <tr>
                                 <td>Plugins/Themes</td>
@@ -575,9 +573,15 @@ if ( file_exists( __DIR__ . '/security-tools/security-tools.php' ) ) {
                     <h2>Feature Guides</h2>
 
                     <h3>General</h3>
-                    <p><strong>Autohide Menu</strong> hides the Security Tools menu from the sidebar. The plugin stays
-                        accessible via the tab navigation and by URL. This is useful if you want fewer visible admin
-                        links for other users.</p>
+                    <p><strong>Autohide Menu</strong> hides the Security Tools menu from the sidebar. Administrators
+                        with Security Tools access can still use the tab navigation or direct URL.</p>
+                    <p><strong>Administrator Access</strong> lists every current Administrator account. An administrator
+                        with Security Tools access can use the <strong>Allow access</strong> toggle to enable or disable
+                        another administrator, then save. Existing access settings are preserved when upgrading.
+                        New administrators start disabled until someone enables them manually. When no access list
+                        exists, the first administrator to open Security Tools receives access. The last enabled
+                        administrator cannot be disabled. A disabled administrator cannot save settings from an old
+                        open form.</p>
                     <p><strong>Reset All Settings</strong> clears every setting and returns the plugin to defaults. It
                         does not uninstall the plugin or delete files.</p>
 
@@ -607,8 +611,9 @@ if ( file_exists( __DIR__ . '/security-tools/security-tools.php' ) ) {
                         the new URL in an incognito window and bookmark it.</p>
 
                     <h3>Admins</h3>
-                    <p>Hides selected administrator accounts from the Users list. Hidden admins still have full access
-                        and can log in.</p>
+                    <p>Hides selected administrator accounts from the Users list. Hidden admins retain their WordPress
+                        permissions and can log in. This setting does not grant Security Tools access; manage that in
+                        General.</p>
 
                     <h3>Plugins</h3>
                     <p>Hides selected plugins from the Plugins list. This does not deactivate them.</p>
@@ -629,6 +634,8 @@ if ( file_exists( __DIR__ . '/security-tools/security-tools.php' ) ) {
                     <p>Hides meta boxes on post/page editors. The plugin discovers metaboxes automatically when you edit
                         content. If some metaboxes are missing, use the <strong>Scan for Metaboxes</strong> button to
                         load all post types and build a complete list.</p>
+                    <p>Version 2.6.4 uses the current WordPress block editor panel API for compatibility with
+                        WordPress 7.1.2.</p>
 
                     <h3>Wordfence Integration</h3>
                     <p>If Wordfence or Wordfence Login Security is active, Security Tools hides the 2FA filter links on
@@ -640,7 +647,7 @@ if ( file_exists( __DIR__ . '/security-tools/security-tools.php' ) ) {
                 <section id="menu-structure">
                     <h2>Menu Structure</h2>
                     <pre>Security Tools (top-level, dashicons-shield)
-├── General         → Autohide Menu + Reset
+├── General         → Administrator Access + Autohide Menu + Reset
 ├── Branding        → Legend + Login Logo
 ├── System Controls → Toggles + Hide Login Page
 ├── Admins          → Hidden Administrators
@@ -790,8 +797,10 @@ get_option( Security_Tools_Utils::OPTION_DISCOVERED_METABOXES ); <span style="co
                     <h2>Troubleshooting</h2>
                     <div class="card">
                         <h3 style="margin-top:0">I can't see the Security Tools menu</h3>
-                        <p>If Autohide Menu is enabled, access the settings directly:</p>
+                        <p>If Autohide Menu is enabled and you have Security Tools access, open the settings directly:</p>
                         <p><code>wp-admin/admin.php?page=security-tools</code></p>
+                        <p>If your access was disabled, ask an administrator who still has Security Tools access to
+                            enable you in General.</p>
                     </div>
                     <div class="card">
                         <h3 style="margin-top:0">I forgot my custom login URL</h3>

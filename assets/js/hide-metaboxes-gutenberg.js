@@ -1,3 +1,7 @@
+/**
+ * Hides selected block editor panels and remaining metabox containers.
+ * Depends on wp.data, wp.domReady, and the core/editor data store.
+ */
 (function() {
     'use strict';
 
@@ -10,7 +14,7 @@
             return;
         }
 
-        var dispatch = wp.data.dispatch('core/edit-post');
+        var dispatch = wp.data.dispatch('core/editor');
         if (!dispatch || !dispatch.removeEditorPanel) {
             return;
         }

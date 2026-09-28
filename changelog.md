@@ -4,6 +4,31 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [2.6.4] - 2026-09-28
+
+### Administrator access
+
+- The General tab now lists current administrators with individual access toggles. An authorized administrator can enable or disable another administrator.
+- Existing access settings are preserved. Newly created administrators start without Security Tools access until manually enabled.
+- When no authorized list exists, the first administrator to open Security Tools is enabled. The last enabled administrator cannot be disabled.
+- Revoked administrators cannot save Security Tools settings through `options.php` using a form they opened earlier.
+
+### Hide controls
+
+- Hidden Administrators, Plugins, Themes, Dashboard Widgets, Admin Bar Items, and Metaboxes now use Hide toggles for individual rows and the All control. Saved selections and bulk selection behavior are preserved.
+- Refined the Metabox Scan icon and Admin Bar Add ID field alignment.
+
+### WordPress compatibility
+
+- Block editor metabox hiding now uses the supported `core/editor.removeEditorPanel` action and `wp-editor` script dependency instead of the deprecated `core/edit-post` action.
+- Verified plugin loading, Settings API registration, and script registration locally with WordPress 7.1.2. PHP lint, JavaScript syntax checks, and Git whitespace checks passed. Browser verification remains separate.
+
+### Release package
+
+- The installation ZIP contains `security-tools-loader.php` beside an unversioned `security-tools/` directory, with development files excluded.
+
+---
+
 ## [2.6.2] - 2026-05-31
 
 ### Summary

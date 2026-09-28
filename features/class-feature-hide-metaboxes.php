@@ -241,7 +241,7 @@ class Security_Tools_Feature_Hide_Metaboxes {
         wp_enqueue_script(
             'security-tools-hide-metaboxes-gutenberg',
             SECURITY_TOOLS_URL . 'assets/js/hide-metaboxes-gutenberg.js',
-            array( 'wp-data', 'wp-dom-ready', 'wp-edit-post' ),
+            array( 'wp-data', 'wp-dom-ready', 'wp-editor' ),
             SECURITY_TOOLS_VERSION,
             true
         );

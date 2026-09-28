@@ -23,6 +23,43 @@ defined( 'ABSPATH' ) || exit;
 class Security_Tools_Admin_Sanitization {
 
     /**
+     * Keep only current administrators in the access list and retain an owner.
+     *
+     * @param mixed $input Submitted administrator IDs.
+     * @return array Valid administrator IDs.
+     */
+    public function sanitize_authorized_admins( $input ) {
+        $existing  = Security_Tools_Utils::get_array_option( Security_Tools_Utils::OPTION_AUTHORIZED_ADMINS );
+        $sanitized = array();
+
+        if ( is_array( $input ) ) {
+            foreach ( $input as $user_id ) {
+                $user_id = absint( $user_id );
+                $user    = $user_id ? get_userdata( $user_id ) : false;
+
+                if ( $user && in_array( 'administrator', $user->roles, true ) ) {
+                    $sanitized[] = $user_id;
+                }
+            }
+        }
+
+        $sanitized = array_values( array_unique( $sanitized ) );
+
+        if ( empty( $sanitized ) ) {
+            add_settings_error(
+                Security_Tools_Utils::OPTION_AUTHORIZED_ADMINS,
+                'last_authorized_admin',
+                __( 'At least one administrator must retain access to Security Tools. Administrator access was not changed.', 'security-tools' ),
+                'error'
+            );
+
+            return ! empty( $existing ) ? $existing : array( get_current_user_id() );
+        }
+
+        return $sanitized;
+    }
+
+    /**
      * ==========================================================================
      * STRING SANITIZATION
      * ==========================================================================

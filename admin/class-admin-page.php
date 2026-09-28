@@ -36,7 +36,7 @@ class Security_Tools_Admin_Page {
     /**
      * Render the General settings subpage
      *
-     * Contains the Autohide Menu toggle and Reset All Settings button.
+     * Contains the Autohide Menu toggle, administrator access, and reset button.
      * The autohide feature allows hiding the plugin menu while maintaining access via URL.
      *
      * @since 2.0
@@ -62,6 +62,7 @@ class Security_Tools_Admin_Page {
             <form method="post" action="options.php">
                 <?php settings_fields( Security_Tools_Utils::SETTINGS_GROUP_GENERAL ); ?>
                 <?php $this->render_autohide_section(); ?>
+                <?php $this->render_administrator_access_section(); ?>
                 <?php $this->render_save_button(); ?>
             </form>
 
@@ -395,6 +396,57 @@ class Security_Tools_Admin_Page {
                     </p>
                 <?php endif; ?>
             </div>
+        </div>
+        <?php
+    }
+
+    /**
+     * Render access switches for each current administrator.
+     *
+     * @return void
+     */
+    private function render_administrator_access_section() {
+        $admins            = get_users( array( 'role' => 'administrator', 'orderby' => 'login', 'order' => 'ASC' ) );
+        $authorized_admins = array_map( 'absint', Security_Tools_Utils::get_array_option( Security_Tools_Utils::OPTION_AUTHORIZED_ADMINS ) );
+
+        $this->render_section_header(
+            __( 'Administrator Access', 'security-tools' ),
+            __( 'Choose which administrators can manage Security Tools. New administrators remain disabled until you enable them. At least one administrator must retain access.', 'security-tools' )
+        );
+        ?>
+        <input type="hidden" name="security_tools_authorized_admins_rendered" value="1">
+        <div class="security-tools-enhanced-table">
+            <table class="wp-list-table widefat fixed striped">
+                <thead>
+                    <tr>
+                        <th scope="col"><?php esc_html_e( 'Username', 'security-tools' ); ?></th>
+                        <th scope="col"><?php esc_html_e( 'Email', 'security-tools' ); ?></th>
+                        <th scope="col"><?php esc_html_e( 'Access', 'security-tools' ); ?></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ( $admins as $admin ) :
+                        /* translators: %s: administrator username. */
+                        $access_label = sprintf( __( 'Allow %s to access Security Tools', 'security-tools' ), $admin->user_login );
+                        ?>
+                        <tr>
+                            <td><strong><?php echo esc_html( $admin->user_login ); ?></strong></td>
+                            <td><?php echo esc_html( $admin->user_email ); ?></td>
+                            <td>
+                                <label class="control-switch security-tools-row-switch">
+                                    <input type="checkbox"
+                                           name="<?php echo esc_attr( Security_Tools_Utils::OPTION_AUTHORIZED_ADMINS ); ?>[]"
+                                           value="<?php echo esc_attr( $admin->ID ); ?>"
+                                           aria-label="<?php echo esc_attr( $access_label ); ?>"
+                                           <?php checked( in_array( $admin->ID, $authorized_admins, true ) ); ?> />
+                                    <span class="control-slider"></span>
+                                    <span class="control-label"><?php esc_html_e( 'Allow access', 'security-tools' ); ?></span>
+                                </label>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
         </div>
         <?php
     }
@@ -826,7 +878,7 @@ class Security_Tools_Admin_Page {
             <table class="wp-list-table widefat fixed striped">
                 <thead>
                     <tr>
-                        <?php $this->render_checkbox_header(); ?>
+                        <?php $this->render_select_all_toggle_header(); ?>
                         <th class="sortable-header" data-column="username">Username <span class="sort-indicator">⇅</span></th>
                         <th class="sortable-header" data-column="email">Email <span class="sort-indicator">⇅</span></th>
                     </tr>
@@ -834,7 +886,7 @@ class Security_Tools_Admin_Page {
                 <tbody>
                     <?php foreach ( $admins as $admin ) : ?>
                         <tr>
-                            <?php $this->render_checkbox_cell( Security_Tools_Utils::OPTION_HIDDEN_ADMINS, $admin->ID, in_array( $admin->ID, $hidden, true ) ); ?>
+                            <?php $this->render_toggle_cell( Security_Tools_Utils::OPTION_HIDDEN_ADMINS, $admin->ID, in_array( $admin->ID, $hidden, true ), $admin->user_login ); ?>
                             <td><strong><?php echo esc_html( $admin->user_login ); ?></strong></td>
                             <td><?php echo esc_html( $admin->user_email ); ?></td>
                         </tr>
@@ -861,7 +913,7 @@ class Security_Tools_Admin_Page {
             <table class="wp-list-table widefat fixed striped">
                 <thead>
                     <tr>
-                        <?php $this->render_checkbox_header(); ?>
+                        <?php $this->render_select_all_toggle_header(); ?>
                         <th class="sortable-header" data-column="plugin-name">Plugin Name <span class="sort-indicator">⇅</span></th>
                         <th class="sortable-header" data-column="status" style="width:100px">Status <span class="sort-indicator">⇅</span></th>
                         <th style="width:80px">Version</th>
@@ -874,7 +926,7 @@ class Security_Tools_Admin_Page {
                         $active = is_plugin_active( $path );
                     ?>
                         <tr>
-                            <?php $this->render_checkbox_cell( Security_Tools_Utils::OPTION_HIDDEN_PLUGINS, $path, in_array( $path, $hidden, true ) ); ?>
+                            <?php $this->render_toggle_cell( Security_Tools_Utils::OPTION_HIDDEN_PLUGINS, $path, in_array( $path, $hidden, true ), $data['Name'] ); ?>
                             <td><strong><?php echo esc_html( $data['Name'] ); ?></strong></td>
                             <td><span class="status-badge <?php echo $active ? 'status-active' : 'status-inactive'; ?>"><?php echo $active ? 'Active' : 'Inactive'; ?></span></td>
                             <td><?php echo esc_html( $data['Version'] ); ?></td>
@@ -902,7 +954,7 @@ class Security_Tools_Admin_Page {
             <table class="wp-list-table widefat fixed striped">
                 <thead>
                     <tr>
-                        <?php $this->render_checkbox_header(); ?>
+                        <?php $this->render_select_all_toggle_header(); ?>
                         <th class="sortable-header" data-column="theme-name">Theme Name <span class="sort-indicator">⇅</span></th>
                         <th class="sortable-header" data-column="status" style="width:100px">Status <span class="sort-indicator">⇅</span></th>
                         <th style="width:80px">Version</th>
@@ -913,7 +965,7 @@ class Security_Tools_Admin_Page {
                         $is_active = ( $slug === $active );
                     ?>
                         <tr>
-                            <?php $this->render_checkbox_cell( Security_Tools_Utils::OPTION_HIDDEN_THEMES, $slug, in_array( $slug, $hidden, true ) ); ?>
+                            <?php $this->render_toggle_cell( Security_Tools_Utils::OPTION_HIDDEN_THEMES, $slug, in_array( $slug, $hidden, true ), $theme->get( 'Name' ) ); ?>
                             <td><strong><?php echo esc_html( $theme->get( 'Name' ) ); ?></strong></td>
                             <td><span class="status-badge <?php echo $is_active ? 'status-active' : 'status-inactive'; ?>"><?php echo $is_active ? 'Active' : 'Inactive'; ?></span></td>
                             <td><?php echo esc_html( $theme->get( 'Version' ) ); ?></td>
@@ -964,7 +1016,7 @@ class Security_Tools_Admin_Page {
             <table class="wp-list-table widefat fixed striped">
                 <thead>
                     <tr>
-                        <?php $this->render_checkbox_header(); ?>
+                        <?php $this->render_select_all_toggle_header(); ?>
                         <th class="sortable-header" data-column="widget-name">Widget Name <span class="sort-indicator">⇅</span></th>
                         <th class="sortable-header" data-column="context" style="width:120px">Context <span class="sort-indicator">⇅</span></th>
                     </tr>
@@ -972,7 +1024,7 @@ class Security_Tools_Admin_Page {
                 <tbody>
                     <?php foreach ( $widgets as $id => $data ) : ?>
                         <tr>
-                            <?php $this->render_checkbox_cell( Security_Tools_Utils::OPTION_HIDDEN_WIDGETS, $id, in_array( $id, $hidden, true ) ); ?>
+                            <?php $this->render_toggle_cell( Security_Tools_Utils::OPTION_HIDDEN_WIDGETS, $id, in_array( $id, $hidden, true ), $data['title'] ); ?>
                             <td><strong><?php echo esc_html( $data['title'] ); ?></strong></td>
                             <td><?php echo esc_html( ucfirst( $data['context'] ) ); ?></td>
                         </tr>
@@ -1000,7 +1052,7 @@ class Security_Tools_Admin_Page {
             <table class="wp-list-table widefat fixed striped">
                 <thead>
                     <tr>
-                        <?php $this->render_checkbox_header(); ?>
+                        <?php $this->render_select_all_toggle_header(); ?>
                         <th class="sortable-header" data-column="item-name">Item Name <span class="sort-indicator">⇅</span></th>
                         <th style="width:220px">Item ID</th>
                     </tr>
@@ -1008,7 +1060,7 @@ class Security_Tools_Admin_Page {
                 <tbody>
                     <?php foreach ( $items as $id => $data ) : ?>
                         <tr>
-                            <?php $this->render_checkbox_cell( Security_Tools_Utils::OPTION_HIDDEN_ADMIN_BAR, $id, in_array( $id, $hidden, true ) ); ?>
+                            <?php $this->render_toggle_cell( Security_Tools_Utils::OPTION_HIDDEN_ADMIN_BAR, $id, in_array( $id, $hidden, true ), $data['title'] ); ?>
                             <td><strong><?php echo esc_html( $data['title'] ); ?></strong></td>
                             <td><code><?php echo esc_html( $id ); ?></code></td>
                         </tr>
@@ -1148,7 +1200,7 @@ class Security_Tools_Admin_Page {
 
                 <div class="security-tools-scan-controls">
                     <button type="button" id="security-tools-scan-metaboxes" class="button button-secondary">
-                        <span class="dashicons dashicons-search" style="margin-top: 3px;"></span>
+                        <span class="dashicons dashicons-search"></span>
                         <?php esc_html_e( 'Scan for Metaboxes', 'security-tools' ); ?>
                     </button>
                     <span id="security-tools-scan-status" class="security-tools-scan-status"></span>
@@ -1178,7 +1230,7 @@ class Security_Tools_Admin_Page {
      * Render hidden metaboxes table
      *
      * Displays all available metaboxes (core + discovered + previously hidden)
-     * with checkboxes to select which ones to hide.
+     * with toggles to select which ones to hide.
      *
      * Also outputs a hidden field with all rendered metabox IDs so the
      * sanitization logic can distinguish between "user unchecked" and
@@ -1208,7 +1260,7 @@ class Security_Tools_Admin_Page {
             <table class="wp-list-table widefat fixed striped">
                 <thead>
                     <tr>
-                        <?php $this->render_checkbox_header(); ?>
+                        <?php $this->render_select_all_toggle_header(); ?>
                         <th class="sortable-header" data-column="element-name">Element Name <span class="sort-indicator">⇅</span></th>
                         <th class="sortable-header" data-column="context" style="width:120px">Context <span class="sort-indicator">⇅</span></th>
                         <th class="sortable-header" data-column="post-type" style="width:150px">Post Type <span class="sort-indicator">⇅</span></th>
@@ -1224,7 +1276,7 @@ class Security_Tools_Admin_Page {
                     <?php else : ?>
                         <?php foreach ( $metaboxes as $id => $data ) : ?>
                             <tr>
-                                <?php $this->render_checkbox_cell( Security_Tools_Utils::OPTION_HIDDEN_METABOXES, $id, in_array( $id, $hidden, true ) ); ?>
+                                <?php $this->render_toggle_cell( Security_Tools_Utils::OPTION_HIDDEN_METABOXES, $id, in_array( $id, $hidden, true ), $data['title'] ); ?>
                                 <td>
                                     <strong><?php echo esc_html( $data['title'] ); ?></strong>
                                     <?php if ( $data['title'] === $id ) : ?>
@@ -1268,38 +1320,45 @@ class Security_Tools_Admin_Page {
     }
 
     /**
-     * Render checkbox header cell
+     * Render the bulk Hide toggle in a table header
      *
-     * @since 1.2
+     * @since 2.6.4
      * @return void
      */
-    private function render_checkbox_header() {
+    private function render_select_all_toggle_header() {
         ?>
-        <th style="width:60px">
-            <label class="security-tools-checkbox">
-                <input type="checkbox" class="select-all-checkbox">
-                <span class="security-tools-checkbox-custom"></span>
+        <th class="security-tools-toggle-column">
+            <label class="control-switch security-tools-row-switch">
+                <input type="checkbox" class="select-all-checkbox" aria-label="<?php esc_attr_e( 'Hide all items', 'security-tools' ); ?>">
+                <span class="control-slider"></span>
+                <span class="control-label"><?php esc_html_e( 'All', 'security-tools' ); ?></span>
             </label>
         </th>
         <?php
     }
 
     /**
-     * Render checkbox cell
+     * Render a row toggle for a hidden item
      *
-     * @since 1.2
-     * @param string $option_name Option name for the checkbox
-     * @param mixed  $value       Checkbox value
-     * @param bool   $checked     Whether checkbox is checked
+     * @since 2.6.4
+     * @param string $option_name Option name for the toggle
+     * @param mixed  $value       Submitted value
+     * @param bool   $checked     Whether the item is hidden
+     * @param string $item_label  Item name for the accessible label
      * @return void
      */
-    private function render_checkbox_cell( $option_name, $value, $checked ) {
+    private function render_toggle_cell( $option_name, $value, $checked, $item_label ) {
+        /* translators: %s: administrator, plugin, theme, widget, admin bar item, or metabox name. */
+        $accessible_label = sprintf( __( 'Hide %s', 'security-tools' ), $item_label );
         ?>
         <td>
-            <label class="security-tools-checkbox">
+            <label class="control-switch security-tools-row-switch">
                 <input type="checkbox" name="<?php echo esc_attr( $option_name ); ?>[]"
-                    value="<?php echo esc_attr( $value ); ?>" <?php checked( $checked ); ?> />
-                <span class="security-tools-checkbox-custom"></span>
+                    value="<?php echo esc_attr( $value ); ?>"
+                    aria-label="<?php echo esc_attr( $accessible_label ); ?>"
+                    <?php checked( $checked ); ?> />
+                <span class="control-slider"></span>
+                <span class="control-label"><?php esc_html_e( 'Hide', 'security-tools' ); ?></span>
             </label>
         </td>
         <?php

@@ -100,6 +100,9 @@ class Security_Tools_Admin {
         // Capture the first settings-page administrator as the authorized owner.
         add_action( 'admin_init', array( $this, 'maybe_initialize_authorized_admin' ), 0 );
 
+        // Check access again when a previously opened settings form is submitted.
+        add_action( 'admin_init', array( $this, 'guard_settings_submission' ), 1 );
+
         // Add admin menu
         add_action( 'admin_menu', array( $this, 'add_admin_menu' ) );
 
@@ -392,6 +395,34 @@ class Security_Tools_Admin {
     }
 
     /**
+     * Deny settings submissions from administrators whose access was revoked.
+     *
+     * The menu check does not protect forms already open in another browser tab.
+     *
+     * @return void
+     */
+    public function guard_settings_submission() {
+        global $pagenow;
+
+        if ( 'options.php' !== $pagenow || ! isset( $_POST['option_page'] ) || ! is_string( $_POST['option_page'] ) ) {
+            return;
+        }
+
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- WordPress verifies the Settings API nonce after admin_init.
+        $option_page = sanitize_text_field( wp_unslash( $_POST['option_page'] ) );
+
+        foreach ( Security_Tools_Utils::get_all_page_slugs() as $page_slug ) {
+            if ( $option_page === Security_Tools_Utils::get_settings_group_for_page( $page_slug ) ) {
+                if ( ! Security_Tools_Utils::current_user_can_manage() ) {
+                    wp_die( esc_html__( 'You are not allowed to manage Security Tools settings.', 'security-tools' ), '', array( 'response' => 403 ) );
+                }
+
+                return;
+            }
+        }
+    }
+
+    /**
      * Pre-process empty array options before Settings API runs
      *
      * WordPress Settings API only triggers sanitize callbacks when an option
@@ -417,6 +448,12 @@ class Security_Tools_Admin {
         $option_page = sanitize_text_field( wp_unslash( $_POST['option_page'] ) );
 
         $rules = array(
+            Security_Tools_Utils::SETTINGS_GROUP_GENERAL => array(
+                array(
+                    'marker' => 'security_tools_authorized_admins_rendered',
+                    'option' => Security_Tools_Utils::OPTION_AUTHORIZED_ADMINS,
+                ),
+            ),
             Security_Tools_Utils::SETTINGS_GROUP_ADMINS => array(
                 array(
                     'marker' => '',

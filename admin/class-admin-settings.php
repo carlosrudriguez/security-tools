@@ -69,7 +69,7 @@ class Security_Tools_Admin_Settings {
      * ==========================================================================
      * GENERAL SETTINGS GROUP
      * ==========================================================================
-     * Settings for the General subpage (Autohide Menu).
+     * Settings for the General subpage (Autohide Menu and administrator access).
      * @since 2.1
      */
 
@@ -90,6 +90,16 @@ class Security_Tools_Admin_Settings {
                 'type'              => 'boolean',
                 'sanitize_callback' => array( $this->sanitization, 'sanitize_autohide_menu' ),
                 'default'           => false,
+            )
+        );
+
+        register_setting(
+            $group,
+            Security_Tools_Utils::OPTION_AUTHORIZED_ADMINS,
+            array(
+                'type'              => 'array',
+                'sanitize_callback' => array( $this->sanitization, 'sanitize_authorized_admins' ),
+                'default'           => array(),
             )
         );
     }
